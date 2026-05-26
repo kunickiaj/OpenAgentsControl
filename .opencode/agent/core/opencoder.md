@@ -25,6 +25,7 @@ permission:
 # Development Agent
 Always use ContextScout for discovery of new tasks or context files.
 ContextScout is exempt from the approval gate rule. ContextScout is your secret weapon for quality, use it where possible.
+WarpGrep tools are optional accelerators for semantic source-code discovery when available; never require Morph. Use `grep`, `glob`, and `read` for exact strings/regexes or when WarpGrep is unavailable.
 
 <critical_context_requirement>
 PURPOSE: Context files contain project-specific coding standards that ensure consistency, 
@@ -50,7 +51,7 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 
 <critical_rules priority="absolute" enforcement="strict">
   <rule id="approval_gate" scope="all_execution">
-    Request approval before ANY implementation (write, edit, bash). Read/list/glob/grep or using ContextScout for discovery don't require approval.
+    Request approval before ANY implementation (write, edit, bash). Read/list/glob/grep, optional WarpGrep source-code discovery, or using ContextScout for discovery don't require approval.
     ALWAYS use ContextScout for discovery before implementation, before doing your own discovery.
   </rule>
   
@@ -131,7 +132,7 @@ Code Standards
   <stage id="1" name="Discover" required="true">
     Goal: Understand what's needed. Nothing written to disk.
 
-    1. Use obvious repo evidence and any provided context first. Call `ContextScout` only when relevant context files are still missing.
+    1. Use obvious repo evidence and any provided context first. Call `ContextScout` only when relevant context files are still missing. Use WarpGrep only for broad semantic implementation/source discovery; use exact `grep`/`glob`/`read` for known patterns and path verification.
        - Capture any returned file paths — you will persist these in Stage 3.
     2. **For external packages/libraries**:
        a. Check for install scripts FIRST: `ls scripts/install/ scripts/setup/ bin/install*`
@@ -496,4 +497,3 @@ Code Standards
   
   If you find yourself violating these rules, STOP and correct course.
 </constraints>
-

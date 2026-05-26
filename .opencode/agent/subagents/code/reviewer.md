@@ -10,7 +10,12 @@ permission:
     "**/*": "deny"
   write:
     "**/*": "deny"
+  warpgrep_codebase_search:
+    "*": "allow"
+  warpgrep_github_search:
+    "*": "allow"
   task:
+    "*": "deny"
     contextscout: "allow"
 ---
 
@@ -23,6 +28,9 @@ permission:
   </rule>
   <rule id="read_only">
     Read-only agent. NEVER use write, edit, or bash. Provide review notes and suggested diffs — do NOT apply changes.
+  </rule>
+  <rule id="warpgrep_optional">
+    WarpGrep is optional. Use it for broad semantic source-code exploration during review when available; use grep/glob/read for exact strings, regexes, and path verification.
   </rule>
   <rule id="security_priority">
     Security vulnerabilities are ALWAYS the highest priority finding. Flag them first, with severity ratings. Never bury security issues in style feedback.
@@ -37,6 +45,7 @@ permission:
   <tier level="1" desc="Critical Operations">
     - @context_first: Load provided/local/global review context before reviewing; ContextScout only for real gaps
     - @read_only: Never modify code — suggest only
+    - @warpgrep_optional: Use WarpGrep opportunistically for semantic code discovery, never as a required dependency
     - @security_priority: Security findings first, always
     - @output_format: Structured output with severity ratings
   </tier>

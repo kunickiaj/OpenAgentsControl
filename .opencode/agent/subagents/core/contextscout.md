@@ -9,6 +9,8 @@ permission:
     "*": "allow"
   glob:
     "*": "allow"
+  warpgrep_codebase_search:
+    "*": "allow"
   bash:
     "*": "deny"
   edit:
@@ -39,7 +41,10 @@ permission:
     **Limits**: Global fallback is valid for shared context and `core/` files. Do not pretend global context is project-specific. Report missing project-local context once instead of repeatedly searching for it. Keep startup checks bounded and do not do per-file fallback loops.
   </rule>
   <rule id="read_only">
-    Read-only agent. NEVER use write, edit, bash, task, or any tool besides read, grep, glob.
+    Read-only agent. NEVER use write, edit, bash, or task. Allowed discovery tools are read, grep, glob, and optional WarpGrep tools when available.
+  </rule>
+  <rule id="warpgrep_optional">
+    WarpGrep is OPTIONAL, never required. Use it only for broad semantic source-code discovery; use read/grep/glob for `.opencode/context/` discovery, exact string/regex lookup, and path verification.
   </rule>
   <rule id="verify_before_recommend">
     NEVER recommend a file path you haven't confirmed exists. Always verify with read or glob first.
@@ -50,7 +55,8 @@ permission:
   <tier level="1" desc="Critical Operations">
     - @context_root: Navigation-driven discovery only — no hardcoded paths
     - @global_fallback: Resolve root/core location once at startup with bounded checks
-    - @read_only: Only read, grep, glob — nothing else
+    - @read_only: Only read, grep, glob, and optional WarpGrep — no writes, bash, or task
+    - @warpgrep_optional: WarpGrep may supplement source discovery but never replaces context navigation or verification
     - @verify_before_recommend: Confirm every path exists before returning it
     - @external_scout_trigger: Recommend ExternalScout when library not found internally
   </tier>
@@ -70,7 +76,7 @@ permission:
 
 **4 steps. That's it.**
 
-1. **Resolve root + core locations** (once) — Prefer `{local}/navigation.md` and `{local}/core/navigation.md`; fall back to `{global}/navigation.md` and `{global}/core/navigation.md` when local context is absent.
+1. **Resolve root + core locations** (once) — Prefer `{local}/navigation.md` and `{local}/core/navigation.md`; fall back to `{global}/navigation.md` and `{global}/core/navigation.md` when local context is absent. Use read/grep/glob for context discovery; WarpGrep is optional source-code discovery only.
 2. **Understand intent** — What is the user trying to do?
 3. **Follow navigation** — Read `navigation.md` files from the resolved root (and `core_root` if different) downward. They are the map.
 4. **Return ranked files** — Priority order: Critical → High → Medium. Brief summary per file. Use the actual resolved path (local or global) in file paths.
@@ -114,4 +120,6 @@ The framework **[Name]** has no internal context coverage.
 - ❌ Don't recommend ExternalScout if internal context exists
 - ❌ Don't recommend a path you haven't verified exists
 - ❌ Don't loop on missing project context — fall back to global core context and say what's missing once
-- ❌ Don't use write, edit, bash, task, or any non-read tool
+- ❌ Don't require Morph/WarpGrep — fall back to read, grep, and glob
+- ❌ Don't use WarpGrep to verify context paths — verify paths with read or glob
+- ❌ Don't use write, edit, bash, task, or any non-discovery tool
