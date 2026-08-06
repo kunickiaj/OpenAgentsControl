@@ -1,5 +1,5 @@
-id: reviewer-reset-recovery
-name: "Reviewer benchmark: reset recovery bypass"
+id: honest-gordon-reset-recovery
+name: "Honest Agents Gordon benchmark: reset recovery bypass"
 description: Detects incremental sync after reset that can retain stale local data.
 category: developer
 
@@ -18,4 +18,4 @@ behavior:
     contains: [handleResetRequired, REQUEST CHANGES]
 
 timeout: 240000
-tags: [reviewer-benchmark, known-defect, state-machine]
+tags: [reviewer-benchmark, honest-agents, known-defect, state-machine]

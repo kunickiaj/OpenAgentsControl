@@ -1,5 +1,5 @@
-id: reviewer-positional-cache-key
-name: "Reviewer benchmark: positional cache identity"
+id: honest-gordon-positional-cache-key
+name: "Honest Agents Gordon benchmark: positional cache identity"
 description: Detects cross-session and positional cache identity collisions.
 category: developer
 
@@ -18,4 +18,4 @@ behavior:
     contains: [sessionKey, REQUEST CHANGES]
 
 timeout: 240000
-tags: [reviewer-benchmark, known-defect, isolation]
+tags: [reviewer-benchmark, honest-agents, known-defect, isolation]

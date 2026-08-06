@@ -154,6 +154,8 @@ Options:
   --agent=NAME           Agent to test (openagent, opencoder, core/openagent)
   --subagent=NAME        Test a subagent (coder-agent, tester, reviewer, etc.)
                          Default: Standalone mode (forces mode: primary)
+  --agent-file=PATH      Use an external agent prompt without registering it
+  --agent-file-sha256=HEX Verify the external prompt before execution
   --delegate             Test subagent via parent delegation (requires --subagent)
   --pattern=GLOB         Test file pattern (default: **/*.yaml)
   --debug                Enable debug output, keep sessions for inspection

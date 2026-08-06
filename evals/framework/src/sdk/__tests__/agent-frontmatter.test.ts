@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyModelVariant } from '../agent-frontmatter.js';
+import { applyAgentMode, applyModelVariant } from '../agent-frontmatter.js';
 
 const prompt = `---
 description: Reviewer
@@ -41,6 +41,49 @@ describe('applyModelVariant', () => {
   it('rejects unterminated frontmatter', () => {
     expect(() => applyModelVariant('---\nmode: subagent', 'high')).toThrow(
       'Agent prompt has unterminated YAML frontmatter'
+    );
+  });
+});
+
+describe('applyAgentMode', () => {
+  it('adds a mode when the source does not define one', () => {
+    const source = prompt.replace('mode: subagent\n', '');
+
+    expect(applyAgentMode(source, 'primary')).toContain(
+      'description: Reviewer\nmode: primary\n---'
+    );
+  });
+
+  it('replaces an existing mode', () => {
+    expect(applyAgentMode(prompt, 'primary')).toContain('mode: primary');
+    expect(applyAgentMode(prompt, 'primary')).not.toContain('mode: subagent');
+  });
+
+  it('rejects unsupported modes', () => {
+    expect(() => applyAgentMode(prompt, 'reviewer')).toThrow('Invalid agent mode');
+  });
+
+  it('handles CRLF frontmatter', () => {
+    const crlf = prompt.split('\n').join('\r\n');
+
+    expect(applyAgentMode(crlf, 'primary')).toContain('mode: primary\r\n---');
+  });
+
+  it('handles a closing delimiter at end of file', () => {
+    expect(applyAgentMode('---\nmode: subagent\n---', 'primary')).toContain(
+      'mode: primary\n---'
+    );
+  });
+
+  it('preserves the prompt body', () => {
+    expect(applyAgentMode(prompt, 'primary')).toContain('# Reviewer');
+  });
+
+  it('rejects multiline mode fields instead of corrupting frontmatter', () => {
+    const multiline = prompt.replace('mode: subagent', 'mode: >\n  subagent');
+
+    expect(() => applyAgentMode(multiline, 'primary')).toThrow(
+      'unsupported multiline mode field'
     );
   });
 });

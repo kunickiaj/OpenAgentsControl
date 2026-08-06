@@ -1,5 +1,5 @@
-id: reviewer-stale-token-digest
-name: "Reviewer benchmark: stale token digest"
+id: honest-gordon-stale-token-digest
+name: "Honest Agents Gordon benchmark: stale token digest"
 description: Detects renewal that leaves the old token digest active.
 category: developer
 
@@ -18,4 +18,4 @@ behavior:
     contains: [tokenDigest, REQUEST CHANGES]
 
 timeout: 240000
-tags: [reviewer-benchmark, known-defect, security]
+tags: [reviewer-benchmark, honest-agents, known-defect, security]
