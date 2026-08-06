@@ -8,7 +8,7 @@
  *   npx vitest run src/sdk/__tests__/client-integration.test.ts
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { ServerManager } from '../server-manager.js';
 import { ClientManager } from '../client-manager.js';
 import { EventStreamHandler } from '../event-stream-handler.js';
@@ -132,6 +132,28 @@ describe('ClientManager Unit', () => {
     const client = new ClientManager({ baseUrl: 'http://localhost:3000' });
     
     expect(client).toBeDefined();
+  });
+
+  it('should include the model variant in prompt requests', async () => {
+    const client = new ClientManager({ baseUrl: 'http://localhost:3000' });
+    const prompt = vi.fn().mockResolvedValue({ data: { ok: true } });
+
+    (client as unknown as { client: { session: { prompt: typeof prompt } } }).client = {
+      session: { prompt },
+    };
+
+    await client.sendPrompt('session-id', {
+      text: 'Review this change.',
+      variant: 'high',
+    });
+
+    expect(prompt).toHaveBeenCalledWith({
+      path: { id: 'session-id' },
+      body: {
+        parts: [{ type: 'text', text: 'Review this change.' }],
+        variant: 'high',
+      },
+    });
   });
 });
 

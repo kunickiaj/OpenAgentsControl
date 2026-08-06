@@ -30,6 +30,8 @@ export interface ExecutionConfig {
   projectPath: string;
   /** Default model to use */
   defaultModel: string;
+  /** Default model reasoning variant. */
+  defaultVariant: string;
   /** Enable debug logging */
   debug: boolean;
 }
@@ -308,6 +310,7 @@ export class TestExecutor {
         text: msg.text,
         agent: agentToUse,
         model: modelToUse ? this.parseModel(modelToUse) : undefined,
+        variant: this.config.defaultVariant || undefined,
         directory: this.config.projectPath,
       });
       
@@ -342,6 +345,7 @@ export class TestExecutor {
       text: testCase.prompt!,
       agent: agentToUse,
       model: modelToUse ? this.parseModel(modelToUse) : undefined,
+      variant: this.config.defaultVariant || undefined,
       directory: this.config.projectPath,
     });
 

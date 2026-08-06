@@ -1,0 +1,6 @@
+agent: subagents/code/gordon-ramsay
+model: anthropic/claude-opus-5
+timeout: 240000
+
+suites:
+  - benchmark

@@ -69,6 +69,7 @@ export interface ResultMetadata {
   readonly timestamp: string;
   readonly agent: string;
   readonly model: string;
+  readonly model_variant?: string;
   readonly framework_version: string;
   readonly git_commit?: string;
   /** Prompt variant used (e.g., 'default', 'gpt', 'gemini') */
@@ -112,6 +113,8 @@ interface PackageJson {
  * Options for saving results
  */
 export interface SaveOptions {
+  /** Model reasoning variant used for the run. */
+  modelVariant?: string;
   /** Prompt variant used (e.g., 'default', 'gpt', 'gemini') */
   promptVariant?: string;
   /** Model family from prompt metadata */
@@ -152,7 +155,11 @@ export class ResultSaver {
     this.ensureDirectoryExists(historyDir);
     
     // Generate filename: DD-HHMMSS-{agent}[-{variant}].json
-    const filename = this.generateFilename(now, agent, options.promptVariant);
+    const filename = this.generateFilename(
+      now,
+      agent,
+      options.promptVariant || options.modelVariant
+    );
     const historyPath = join(historyDir, filename);
     
     // Save to history
@@ -233,6 +240,7 @@ export class ResultSaver {
         timestamp: new Date().toISOString(),
         agent,
         model,
+        model_variant: options.modelVariant,
         framework_version: this.getFrameworkVersion(),
         git_commit: this.getGitCommit(),
         prompt_variant: options.promptVariant,

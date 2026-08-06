@@ -1,0 +1,22 @@
+id: reviewer-safe-token-rotation
+name: "Reviewer benchmark: safe token rotation"
+description: Controls false positives with a bounded, correct token rotation path.
+category: developer
+
+prompt: |
+  Read only evals/fixtures/reviewer-benchmark/safe-token-rotation.ts. Treat it as the exact changed-file scope. Report only reachable correctness or security failures, not speculative hardening. End with a final line containing exactly SHIP or REQUEST CHANGES.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [read]
+  mustNotUseTools: [bash, edit, write]
+  minToolCalls: 1
+  maxToolCalls: 8
+  expectedResponse:
+    contains: [SHIP]
+    notContains: [REQUEST CHANGES]
+
+timeout: 240000
+tags: [reviewer-benchmark, clean-control, precision]

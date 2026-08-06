@@ -29,6 +29,7 @@
  *   --delegate           Test subagent via parent delegation (requires --subagent)
  *                        Uses appropriate parent agent (opencoder, openagent, etc.)
  *   --model=PROVIDER/MODEL  Override default model (default: opencode/grok-code-fast)
+ *   --variant=NAME         Override model reasoning variant via agent frontmatter
  *   --pattern=GLOB       Run specific test files (default: star-star/star.yaml)
  *   --timeout=MS         Test timeout in milliseconds (default: 60000)
  *   --prompt-variant=NAME Use specific prompt variant (e.g., gpt, gemini, grok, llama)
@@ -59,6 +60,7 @@ interface CliArgs {
   pattern?: string;
   timeout?: number;
   model?: string;
+  variant?: string;
   promptVariant?: string;
   subagent?: string;      // Test a subagent
   delegate?: boolean;     // Test subagent via delegation (requires --subagent)
@@ -77,6 +79,7 @@ function parseArgs(): CliArgs {
     pattern: args.find(a => a.startsWith('--pattern='))?.split('=')[1],
     timeout: parseInt(args.find(a => a.startsWith('--timeout='))?.split('=')[1] || '60000'),
     model: args.find(a => a.startsWith('--model='))?.split('=')[1],
+    variant: args.find(a => a.startsWith('--variant='))?.split('=')[1],
     promptVariant: args.find(a => a.startsWith('--prompt-variant='))?.split('=')[1],
     subagent: args.find(a => a.startsWith('--subagent='))?.split('=')[1],
     delegate: args.includes('--delegate'),
@@ -333,6 +336,9 @@ async function main() {
       'TestEngineer': 'opencoder',
       'reviewer': 'opencoder',
       'CodeReviewer': 'opencoder',
+      'adversarial-reviewer': 'opencoder',
+      'AdversarialReviewer': 'opencoder',
+      'gordon-ramsay': 'opencoder',
       'build-agent': 'opencoder',
       'BuildAgent': 'opencoder',
       'codebase-pattern-analyst': 'opencoder',
@@ -445,6 +451,9 @@ async function main() {
       'TestEngineer': 'subagents/code/tester',
       'reviewer': 'subagents/code/reviewer',
       'CodeReviewer': 'subagents/code/reviewer',
+      'adversarial-reviewer': 'subagents/code/adversarial-reviewer',
+      'AdversarialReviewer': 'subagents/code/adversarial-reviewer',
+      'gordon-ramsay': 'subagents/code/gordon-ramsay',
       'build-agent': 'subagents/code/build-agent',
       'BuildAgent': 'subagents/code/build-agent',
       'codebase-pattern-analyst': 'subagents/code/codebase-pattern-analyst',
@@ -649,12 +658,16 @@ async function main() {
     defaultTimeout: args.timeout,
     runEvaluators: !args.noEvaluators,
     defaultModel: modelToUse, // Will use 'opencode/grok-code-fast' if not specified
+    defaultVariant: args.variant,
   });
   
   if (modelToUse) {
     console.log(`Using model: ${modelToUse}`);
   } else {
     console.log('Using default model: opencode/grok-code-fast (free tier)');
+  }
+  if (args.variant) {
+    console.log(`Using model variant: ${args.variant}`);
   }
   console.log();
   
@@ -736,6 +749,7 @@ async function main() {
       try {
         const savedPath = await resultSaver.save(results, agent, model, {
           promptVariant: promptVariant,
+          modelVariant: args.variant,
           modelFamily: modelFamily,
           promptsDir: promptManager.getPromptsDir(),
         });

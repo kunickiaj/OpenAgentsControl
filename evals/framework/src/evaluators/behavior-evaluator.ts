@@ -465,7 +465,7 @@ export class BehaviorEvaluator extends BaseEvaluator {
     // Check 8: expectedResponse (validate response content)
     if (this.behavior.expectedResponse) {
       const assistantMessages = timeline.filter(
-        e => e.type === 'message' && e.data?.role === 'assistant' && e.data?.text
+        event => event.type === 'assistant_message' && event.data?.text
       );
       
       // Combine all assistant messages into one text for validation

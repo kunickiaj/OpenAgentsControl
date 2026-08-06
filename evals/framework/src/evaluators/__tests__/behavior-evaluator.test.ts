@@ -466,4 +466,55 @@ describe('BehaviorEvaluator', () => {
       expect(result.passed).toBe(true);
     });
   });
+
+  describe('expectedResponse', () => {
+    it('passes when assistant output contains required text', async () => {
+      const evaluator = new BehaviorEvaluator({
+        expectedResponse: { contains: ['REQUEST CHANGES', 'tokenDigest'] },
+      });
+      const timeline = [
+        createAssistantMessageEvent('tokenDigest remains stale. REQUEST CHANGES'),
+      ];
+
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      expect(result.passed).toBe(true);
+      expect(result.violations).toHaveLength(0);
+    });
+
+    it('fails when required assistant output is missing', async () => {
+      const evaluator = new BehaviorEvaluator({
+        expectedResponse: { contains: ['REQUEST CHANGES'] },
+      });
+      const timeline = [createAssistantMessageEvent('SHIP')];
+
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      expect(result.passed).toBe(false);
+      expect(result.violations[0].type).toBe('missing-expected-content');
+    });
+
+    it('ignores forbidden text that appears only in the user prompt', async () => {
+      const evaluator = new BehaviorEvaluator({
+        expectedResponse: {
+          contains: ['SHIP'],
+          notContains: ['REQUEST CHANGES'],
+        },
+      });
+      const timeline: TimelineEvent[] = [
+        {
+          timestamp: Date.now(),
+          type: 'user_message',
+          messageId: 'user-1',
+          data: { text: 'End with SHIP or REQUEST CHANGES.' },
+        },
+        createAssistantMessageEvent('No reachable defects. SHIP'),
+      ];
+
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      expect(result.passed).toBe(true);
+      expect(result.violations).toHaveLength(0);
+    });
+  });
 });
