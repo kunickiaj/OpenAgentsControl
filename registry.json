@@ -182,6 +182,36 @@
         "category": "standard"
       },
       {
+        "id": "adversarial-reviewer",
+        "name": "AdversarialReviewer",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/code/adversarial-reviewer.md",
+        "description": "Performs concise counterexample-driven correctness and security review",
+        "tags": [
+          "review",
+          "correctness",
+          "security",
+          "adversarial"
+        ],
+        "dependencies": [],
+        "category": "standard"
+      },
+      {
+        "id": "gordon-ramsay",
+        "name": "gordon-ramsay",
+        "type": "subagent",
+        "path": ".opencode/agent/subagents/code/gordon-ramsay.md",
+        "description": "Provides blunt, entertaining, evidence-backed code and architecture review",
+        "tags": [
+          "review",
+          "direct",
+          "adversarial",
+          "maintainability"
+        ],
+        "dependencies": [],
+        "category": "specialized"
+      },
+      {
         "id": "tester",
         "name": "TestEngineer",
         "type": "subagent",
@@ -3164,6 +3194,7 @@
         "subagent:documentation",
         "subagent:coder-agent",
         "subagent:reviewer",
+        "subagent:adversarial-reviewer",
         "subagent:tester",
         "subagent:build-agent",
         "subagent:contextscout",
@@ -3246,6 +3277,8 @@
         "subagent:documentation",
         "subagent:coder-agent",
         "subagent:reviewer",
+        "subagent:adversarial-reviewer",
+        "subagent:gordon-ramsay",
         "subagent:tester",
         "subagent:build-agent",
         "subagent:contextscout",
@@ -3304,6 +3337,8 @@
         "subagent:documentation",
         "subagent:coder-agent",
         "subagent:reviewer",
+        "subagent:adversarial-reviewer",
+        "subagent:gordon-ramsay",
         "subagent:tester",
         "subagent:build-agent",
         "subagent:image-specialist",
