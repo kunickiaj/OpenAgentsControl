@@ -256,19 +256,6 @@
         "context:review-ref"
       ]
     },
-    "gordon-ramsay": {
-      "id": "gordon-ramsay",
-      "name": "gordon-ramsay",
-      "category": "subagents/code",
-      "type": "subagent",
-      "version": "1.0.0",
-      "author": "custom",
-      "tags": ["review", "direct", "adversarial", "maintainability"],
-      "dependencies": [
-        "context:standards-code",
-        "context:review-ref"
-      ]
-    },
     "build-agent": {
       "id": "build-agent",
       "name": "BuildAgent",

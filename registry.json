@@ -197,21 +197,6 @@
         "category": "standard"
       },
       {
-        "id": "gordon-ramsay",
-        "name": "gordon-ramsay",
-        "type": "subagent",
-        "path": ".opencode/agent/subagents/code/gordon-ramsay.md",
-        "description": "Provides blunt, entertaining, evidence-backed code and architecture review",
-        "tags": [
-          "review",
-          "direct",
-          "adversarial",
-          "maintainability"
-        ],
-        "dependencies": [],
-        "category": "specialized"
-      },
-      {
         "id": "tester",
         "name": "TestEngineer",
         "type": "subagent",
@@ -3278,7 +3263,6 @@
         "subagent:coder-agent",
         "subagent:reviewer",
         "subagent:adversarial-reviewer",
-        "subagent:gordon-ramsay",
         "subagent:tester",
         "subagent:build-agent",
         "subagent:contextscout",
@@ -3338,7 +3322,6 @@
         "subagent:coder-agent",
         "subagent:reviewer",
         "subagent:adversarial-reviewer",
-        "subagent:gordon-ramsay",
         "subagent:tester",
         "subagent:build-agent",
         "subagent:image-specialist",

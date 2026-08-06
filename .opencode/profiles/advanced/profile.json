@@ -17,7 +17,6 @@
     "subagent:coder-agent",
     "subagent:reviewer",
     "subagent:adversarial-reviewer",
-    "subagent:gordon-ramsay",
     "subagent:tester",
     "subagent:build-agent",
     "subagent:image-specialist",

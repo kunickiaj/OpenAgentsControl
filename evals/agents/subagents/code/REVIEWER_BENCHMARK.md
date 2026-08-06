@@ -4,8 +4,7 @@
 
 - Keep **CodeReviewer at medium** as the default general-purpose quality gate.
 - Use **AdversarialReviewer at medium** for targeted escalation on high-risk behavior, state transitions, retries, authorization, and isolation boundaries.
-- Reserve **high** effort for unusually ambiguous or high-impact reviews. This run observed no additional detections and measured 19-49% higher mean latency.
-- Keep **Gordon at medium** as an explicitly requested human-facing review style, not as an automatic quality gate. It matched the other reviewers on this suite, which is too small to rank reviewer quality.
+- Reserve **high** effort for unusually ambiguous or high-impact reviews. This run observed no additional detections and measured 45-49% higher mean latency.
 
 ## Method
 
@@ -32,8 +31,6 @@ npm run eval:sdk -- --subagent=reviewer --pattern="benchmark/*.yaml" --model=ant
 | CodeReviewer | high | 4/4 | 135.1s | 33.8s | +44.6% |
 | AdversarialReviewer | medium | 4/4 | 100.9s | 25.2s | - |
 | AdversarialReviewer | high | 4/4 | 150.3s | 37.6s | +49.0% |
-| Gordon | medium | 4/4 | 105.5s | 26.4s | - |
-| Gordon | high | 4/4 | 125.4s | 31.3s | +18.9% |
 
 ## Variant Verification
 

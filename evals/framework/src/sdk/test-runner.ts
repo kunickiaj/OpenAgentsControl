@@ -260,7 +260,6 @@ export class TestRunner {
       'CodeReviewer': 'subagents/code/reviewer.md',
       'adversarial-reviewer': 'subagents/code/adversarial-reviewer.md',
       'AdversarialReviewer': 'subagents/code/adversarial-reviewer.md',
-      'gordon-ramsay': 'subagents/code/gordon-ramsay.md',
       'build-agent': 'subagents/code/build-agent.md',
       'BuildAgent': 'subagents/code/build-agent.md',
       'codebase-pattern-analyst': 'subagents/code/codebase-pattern-analyst.md',
