@@ -11,6 +11,7 @@ behavior:
   minToolCalls: 1
   maxToolCalls: 8
   expectedResponse:
-    contains: [sessionKey, REQUEST CHANGES]
+    contains: [sessionKey]
+    finalLine: REQUEST CHANGES
 timeout: 240000
 tags: [reviewer-benchmark, known-defect, isolation]

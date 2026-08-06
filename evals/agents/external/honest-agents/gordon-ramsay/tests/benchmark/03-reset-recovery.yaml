@@ -15,7 +15,8 @@ behavior:
   minToolCalls: 1
   maxToolCalls: 8
   expectedResponse:
-    contains: [handleResetRequired, REQUEST CHANGES]
+    contains: [handleResetRequired]
+    finalLine: REQUEST CHANGES
 
 timeout: 240000
 tags: [reviewer-benchmark, honest-agents, known-defect, state-machine]

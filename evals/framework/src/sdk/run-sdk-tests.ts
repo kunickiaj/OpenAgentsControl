@@ -293,6 +293,12 @@ async function displayConversation(sessionId: string): Promise<void> {
 
 async function main() {
   const args = parseArgs();
+
+  if (args.agentFile && !args.agentFileSha256) {
+    console.error('❌ --agent-file requires --agent-file-sha256');
+    console.error('   External agent prompts must be pinned to an expected digest');
+    process.exit(1);
+  }
   
   // If --verbose is set, automatically enable --debug (required for session data)
   if (args.verbose && !args.debug) {

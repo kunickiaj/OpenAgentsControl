@@ -111,8 +111,9 @@ export const BehaviorExpectationSchema = z.object({
   expectedResponse: z.object({
     contains: z.array(z.string()).optional(),
     notContains: z.array(z.string()).optional(),
+    finalLine: z.string().min(1).optional(),
     description: z.string().optional(),
-  }).optional(),
+  }).strict().optional(),
 });
 
 export type BehaviorExpectation = z.infer<typeof BehaviorExpectationSchema>;

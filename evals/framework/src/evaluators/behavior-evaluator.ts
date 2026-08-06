@@ -472,6 +472,7 @@ export class BehaviorEvaluator extends BaseEvaluator {
       const fullResponse = assistantMessages
         .map(m => m.data?.text || '')
         .join('\n');
+      const finalLine = fullResponse.trimEnd().split(/\r?\n/).pop()?.trim() || '';
       
       // Check contains
       if (this.behavior.expectedResponse.contains && this.behavior.expectedResponse.contains.length > 0) {
@@ -557,6 +558,44 @@ export class BehaviorEvaluator extends BaseEvaluator {
                 forbiddenCount: this.behavior.expectedResponse.notContains.length,
                 foundCount: foundForbiddenStrings.length,
                 foundForbiddenStrings,
+              }
+            )
+          ]
+        });
+      }
+
+      if (this.behavior.expectedResponse.finalLine) {
+        const expectedFinalLine = this.behavior.expectedResponse.finalLine;
+        const passed = finalLine === expectedFinalLine;
+
+        if (!passed) {
+          violations.push(
+            this.createViolation(
+              'unexpected-final-line',
+              'error',
+              `Response must end with exactly: ${expectedFinalLine}`,
+              Date.now(),
+              {
+                expectedFinalLine,
+                actualFinalLine: finalLine,
+              }
+            )
+          );
+        }
+
+        checks.push({
+          name: 'expected-response-final-line',
+          passed,
+          weight: 100,
+          evidence: [
+            this.createEvidence(
+              'response-final-line',
+              passed
+                ? `Response ends with exactly: ${expectedFinalLine}`
+                : `Response ended with: ${finalLine || '<empty>'}`,
+              {
+                expectedFinalLine,
+                actualFinalLine: finalLine,
               }
             )
           ]

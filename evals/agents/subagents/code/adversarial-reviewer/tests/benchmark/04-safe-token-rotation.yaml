@@ -11,7 +11,6 @@ behavior:
   minToolCalls: 1
   maxToolCalls: 8
   expectedResponse:
-    contains: [SHIP]
-    notContains: [REQUEST CHANGES]
+    finalLine: SHIP
 timeout: 240000
 tags: [reviewer-benchmark, clean-control, precision]

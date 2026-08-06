@@ -439,6 +439,7 @@ If you see this prompt during a test run, something went wrong with the test set
         projectPath: this.config.projectPath,
         defaultModel: this.config.defaultModel,
         defaultVariant: this.config.defaultVariant,
+        executionAgent: 'Eval Runner',
         debug: this.config.debug,
       },
       this.logger

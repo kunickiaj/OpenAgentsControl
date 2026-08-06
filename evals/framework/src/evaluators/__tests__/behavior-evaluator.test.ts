@@ -516,5 +516,38 @@ describe('BehaviorEvaluator', () => {
       expect(result.passed).toBe(true);
       expect(result.violations).toHaveLength(0);
     });
+
+    it('passes when the final non-empty line exactly matches', async () => {
+      const evaluator = new BehaviorEvaluator({
+        expectedResponse: { finalLine: 'REQUEST CHANGES' },
+      });
+      const timeline = [
+        createAssistantMessageEvent('The token remains valid.\n\nREQUEST CHANGES\n'),
+      ];
+
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      expect(result.passed).toBe(true);
+      expect(result.violations).toHaveLength(0);
+    });
+
+    it('fails when the expected verdict is mentioned but the final line differs', async () => {
+      const evaluator = new BehaviorEvaluator({
+        expectedResponse: {
+          contains: ['tokenDigest', 'REQUEST CHANGES'],
+          finalLine: 'REQUEST CHANGES',
+        },
+      });
+      const timeline = [
+        createAssistantMessageEvent(
+          'tokenDigest may suggest REQUEST CHANGES, but the code is safe.\nSHIP'
+        ),
+      ];
+
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      expect(result.passed).toBe(false);
+      expect(result.violations.some(v => v.type === 'unexpected-final-line')).toBe(true);
+    });
   });
 });
