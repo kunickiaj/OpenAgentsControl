@@ -133,6 +133,46 @@ describe('TestCaseSchema', () => {
   });
 
   describe('behavior fields', () => {
+    it('should validate an exact expected response final line', () => {
+      const result = TestCaseSchema.safeParse({
+        id: 'test-1',
+        name: 'Test',
+        description: 'Test description',
+        category: 'developer',
+        prompt: 'Review this change',
+        approvalStrategy: { type: 'auto-approve' },
+        behavior: {
+          expectedResponse: { finalLine: 'REQUEST CHANGES' },
+        },
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject empty or misspelled expected response final lines', () => {
+      const empty = TestCaseSchema.safeParse({
+        id: 'test-1',
+        name: 'Test',
+        description: 'Test description',
+        category: 'developer',
+        prompt: 'Review this change',
+        approvalStrategy: { type: 'auto-approve' },
+        behavior: { expectedResponse: { finalLine: '' } },
+      });
+      const misspelled = TestCaseSchema.safeParse({
+        id: 'test-1',
+        name: 'Test',
+        description: 'Test description',
+        category: 'developer',
+        prompt: 'Review this change',
+        approvalStrategy: { type: 'auto-approve' },
+        behavior: { expectedResponse: { final_line: 'REQUEST CHANGES' } },
+      });
+
+      expect(empty.success).toBe(false);
+      expect(misspelled.success).toBe(false);
+    });
+
     it('should validate mustUseTools as string array', () => {
       const result = TestCaseSchema.safeParse({
         id: 'test-1',

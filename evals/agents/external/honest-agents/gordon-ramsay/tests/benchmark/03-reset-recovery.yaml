@@ -1,0 +1,22 @@
+id: honest-gordon-reset-recovery
+name: "Honest Agents Gordon benchmark: reset recovery bypass"
+description: Detects incremental sync after reset that can retain stale local data.
+category: developer
+
+prompt: |
+  Read only evals/fixtures/reviewer-benchmark/reset-recovery.ts. Treat it as the exact changed-file scope. Review it for concrete state-transition and stale-data failures. Include exact symbol names in findings. End with a final line containing exactly SHIP or REQUEST CHANGES.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [read]
+  mustNotUseTools: [bash, edit, write, task]
+  minToolCalls: 1
+  maxToolCalls: 8
+  expectedResponse:
+    contains: [handleResetRequired]
+    finalLine: REQUEST CHANGES
+
+timeout: 240000
+tags: [reviewer-benchmark, honest-agents, known-defect, state-machine]

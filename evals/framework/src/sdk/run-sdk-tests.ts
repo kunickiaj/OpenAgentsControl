@@ -26,9 +26,12 @@
  *   --agent=AGENT        Run tests for specific agent (openagent, opencoder)
  *   --subagent=NAME      Test a subagent (coder-agent, tester, reviewer, etc.)
  *                        Default: Standalone mode (forces mode: primary)
+ *   --agent-file=PATH    Use an external agent prompt without registering it
+ *   --agent-file-sha256=HEX Verify the external prompt before execution
  *   --delegate           Test subagent via parent delegation (requires --subagent)
  *                        Uses appropriate parent agent (opencoder, openagent, etc.)
  *   --model=PROVIDER/MODEL  Override default model (default: opencode/grok-code-fast)
+ *   --variant=NAME         Override model reasoning variant via agent frontmatter
  *   --pattern=GLOB       Run specific test files (default: star-star/star.yaml)
  *   --timeout=MS         Test timeout in milliseconds (default: 60000)
  *   --prompt-variant=NAME Use specific prompt variant (e.g., gpt, gemini, grok, llama)
@@ -41,7 +44,7 @@ import { ResultSaver } from './result-saver.js';
 import { PromptManager } from './prompt-manager.js';
 import { SuiteValidator } from './suite-validator.js';
 import { globSync } from 'glob';
-import { join, dirname } from 'path';
+import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { rmSync, existsSync, readdirSync } from 'fs';
 import type { TestResult } from './test-runner.js';
@@ -59,8 +62,11 @@ interface CliArgs {
   pattern?: string;
   timeout?: number;
   model?: string;
+  variant?: string;
   promptVariant?: string;
   subagent?: string;      // Test a subagent
+  agentFile?: string;     // External agent prompt override
+  agentFileSha256?: string; // Expected external prompt digest
   delegate?: boolean;     // Test subagent via delegation (requires --subagent)
 }
 
@@ -77,8 +83,11 @@ function parseArgs(): CliArgs {
     pattern: args.find(a => a.startsWith('--pattern='))?.split('=')[1],
     timeout: parseInt(args.find(a => a.startsWith('--timeout='))?.split('=')[1] || '60000'),
     model: args.find(a => a.startsWith('--model='))?.split('=')[1],
+    variant: args.find(a => a.startsWith('--variant='))?.split('=')[1],
     promptVariant: args.find(a => a.startsWith('--prompt-variant='))?.split('=')[1],
     subagent: args.find(a => a.startsWith('--subagent='))?.split('=')[1],
+    agentFile: args.find(a => a.startsWith('--agent-file='))?.split('=')[1],
+    agentFileSha256: args.find(a => a.startsWith('--agent-file-sha256='))?.split('=')[1],
     delegate: args.includes('--delegate'),
   };
 }
@@ -284,6 +293,12 @@ async function displayConversation(sessionId: string): Promise<void> {
 
 async function main() {
   const args = parseArgs();
+
+  if (args.agentFile && !args.agentFileSha256) {
+    console.error('❌ --agent-file requires --agent-file-sha256');
+    console.error('   External agent prompts must be pinned to an expected digest');
+    process.exit(1);
+  }
   
   // If --verbose is set, automatically enable --debug (required for session data)
   if (args.verbose && !args.debug) {
@@ -323,6 +338,18 @@ async function main() {
     
     isSubagentTest = true;
     isDelegationTest = args.delegate || false;
+
+    if (args.subagent === 'gordon-ramsay') {
+      if (isDelegationTest) {
+        console.error("❌ 'gordon-ramsay' is external and cannot be delegation-tested");
+        process.exit(1);
+      }
+      if (!args.agentFile) {
+        console.error("❌ 'gordon-ramsay' is not defined in this repository");
+        console.error('   Supply it explicitly with --agent-file=PATH');
+        process.exit(1);
+      }
+    }
     
     // Map subagents to their parent agents for delegation testing
     const subagentParentMap: Record<string, string> = {
@@ -333,6 +360,8 @@ async function main() {
       'TestEngineer': 'opencoder',
       'reviewer': 'opencoder',
       'CodeReviewer': 'opencoder',
+      'adversarial-reviewer': 'opencoder',
+      'AdversarialReviewer': 'opencoder',
       'build-agent': 'opencoder',
       'BuildAgent': 'opencoder',
       'codebase-pattern-analyst': 'opencoder',
@@ -393,7 +422,9 @@ async function main() {
       console.log(`⚡ Standalone Test Mode`);
       console.log(`   Subagent: ${args.subagent}`);
       console.log(`   Mode: Forced to 'primary' for direct testing`);
-      console.log(`   Note: In production, this subagent runs as 'mode: subagent'\n`);
+      console.log(args.agentFile
+        ? `   Note: External prompt loaded directly; it is not registered here\n`
+        : `   Note: In production, this subagent runs as 'mode: subagent'\n`);
     }
   }
   
@@ -445,6 +476,9 @@ async function main() {
       'TestEngineer': 'subagents/code/tester',
       'reviewer': 'subagents/code/reviewer',
       'CodeReviewer': 'subagents/code/reviewer',
+      'adversarial-reviewer': 'subagents/code/adversarial-reviewer',
+      'AdversarialReviewer': 'subagents/code/adversarial-reviewer',
+      'gordon-ramsay': 'external/honest-agents/gordon-ramsay',
       'build-agent': 'subagents/code/build-agent',
       'BuildAgent': 'subagents/code/build-agent',
       'codebase-pattern-analyst': 'subagents/code/codebase-pattern-analyst',
@@ -649,12 +683,30 @@ async function main() {
     defaultTimeout: args.timeout,
     runEvaluators: !args.noEvaluators,
     defaultModel: modelToUse, // Will use 'opencode/grok-code-fast' if not specified
+    defaultVariant: args.variant,
+    agentSourcePath: args.agentFile ? resolve(args.agentFile) : undefined,
+    expectedAgentSourceSha256: args.agentFileSha256,
   });
+
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+    process.once(signal, () => {
+      runner.stop().finally(() => process.exit(130));
+    });
+  }
   
   if (modelToUse) {
     console.log(`Using model: ${modelToUse}`);
   } else {
     console.log('Using default model: opencode/grok-code-fast (free tier)');
+  }
+  if (args.variant) {
+    console.log(`Using model variant: ${args.variant}`);
+  }
+  if (args.agentFile) {
+    console.log(`Using external agent prompt: ${resolve(args.agentFile)}`);
+  }
+  if (args.agentFileSha256) {
+    console.log(`Verifying external agent SHA-256: ${args.agentFileSha256}`);
   }
   console.log();
   
@@ -736,6 +788,7 @@ async function main() {
       try {
         const savedPath = await resultSaver.save(results, agent, model, {
           promptVariant: promptVariant,
+          modelVariant: args.variant,
           modelFamily: modelFamily,
           promptsDir: promptManager.getPromptsDir(),
         });

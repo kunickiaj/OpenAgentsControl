@@ -30,6 +30,10 @@ export interface ExecutionConfig {
   projectPath: string;
   /** Default model to use */
   defaultModel: string;
+  /** Default model reasoning variant. */
+  defaultVariant: string;
+  /** Agent that owns the dynamically copied evaluation prompt. */
+  executionAgent: string;
   /** Enable debug logging */
   debug: boolean;
 }
@@ -94,42 +98,7 @@ export class TestExecutor {
       
       // Show agent/model configuration prominently
       const modelToUse = testCase.model || this.config.defaultModel;
-      const agentDisplayMap: Record<string, string> = {
-        'openagent': 'OpenAgent',
-        'core/openagent': 'OpenAgent',
-        'OpenAgent': 'OpenAgent',
-        'opencoder': 'OpenCoder',
-        'core/opencoder': 'OpenCoder',
-        'OpenCoder': 'OpenCoder',
-        'system-builder': 'OpenSystemBuilder',
-        'meta/system-builder': 'OpenSystemBuilder',
-        'OpenSystemBuilder': 'OpenSystemBuilder',
-        'codebase-agent': 'OpenCodebaseAgent',
-        'development/codebase-agent': 'OpenCodebaseAgent',
-        'OpenCodebaseAgent': 'OpenCodebaseAgent',
-        'devops-specialist': 'OpenDevopsSpecialist',
-        'development/devops-specialist': 'OpenDevopsSpecialist',
-        'OpenDevopsSpecialist': 'OpenDevopsSpecialist',
-        'frontend-specialist': 'OpenFrontendSpecialist',
-        'development/frontend-specialist': 'OpenFrontendSpecialist',
-        'OpenFrontendSpecialist': 'OpenFrontendSpecialist',
-        'backend-specialist': 'OpenBackendSpecialist',
-        'development/backend-specialist': 'OpenBackendSpecialist',
-        'OpenBackendSpecialist': 'OpenBackendSpecialist',
-        'technical-writer': 'OpenTechnicalWriter',
-        'content/technical-writer': 'OpenTechnicalWriter',
-        'OpenTechnicalWriter': 'OpenTechnicalWriter',
-        'copywriter': 'OpenCopywriter',
-        'content/copywriter': 'OpenCopywriter',
-        'OpenCopywriter': 'OpenCopywriter',
-        'data-analyst': 'OpenDataAnalyst',
-        'data/data-analyst': 'OpenDataAnalyst',
-        'OpenDataAnalyst': 'OpenDataAnalyst',
-        'repo-manager': 'OpenRepoManager',
-        'meta/repo-manager': 'OpenRepoManager',
-        'OpenRepoManager': 'OpenRepoManager',
-      };
-      const agentToUse = agentDisplayMap[testCase.agent || 'openagent'] || testCase.agent || 'OpenAgent';
+      const agentToUse = this.config.executionAgent;
       
       this.logger.log(`┌${'─'.repeat(58)}┐`);
       this.logger.log(`│ 🤖 Agent: ${agentToUse.padEnd(46)} │`);
@@ -255,17 +224,7 @@ export class TestExecutor {
     const timeout = testCase.timeout || this.config.defaultTimeout;
     const modelToUse = testCase.model || this.config.defaultModel;
     
-    // Map test agent names to their display names (as shown in `opencode agent list`)
-    const agentDisplayMap: Record<string, string> = {
-      'openagent': 'OpenAgent',
-      'core/openagent': 'OpenAgent',
-      'opencoder': 'OpenCoder',
-      'core/opencoder': 'OpenCoder',
-      'system-builder': 'System Builder',
-      'meta/system-builder': 'System Builder',
-    };
-    
-    const agentToUse = agentDisplayMap[testCase.agent || 'openagent'] || 'OpenAgent';
+    const agentToUse = this.config.executionAgent;
     
     // Agent/Model already logged in execute() method - no need to duplicate
     
@@ -308,6 +267,7 @@ export class TestExecutor {
         text: msg.text,
         agent: agentToUse,
         model: modelToUse ? this.parseModel(modelToUse) : undefined,
+        variant: this.config.defaultVariant || undefined,
         directory: this.config.projectPath,
       });
       
@@ -342,6 +302,7 @@ export class TestExecutor {
       text: testCase.prompt!,
       agent: agentToUse,
       model: modelToUse ? this.parseModel(modelToUse) : undefined,
+      variant: this.config.defaultVariant || undefined,
       directory: this.config.projectPath,
     });
 

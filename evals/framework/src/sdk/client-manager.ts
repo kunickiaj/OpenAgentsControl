@@ -35,6 +35,8 @@ export interface PromptConfig {
     providerID: string;
     modelID: string;
   };
+  /** Model reasoning variant (for example, medium or high). */
+  variant?: string;
   /** Working directory for the agent */
   directory?: string;
   /** Files to attach to the prompt */
@@ -127,6 +129,10 @@ export class ClientManager {
     // Add model if specified
     if (config.model) {
       body.model = config.model;
+    }
+
+    if (config.variant) {
+      body.variant = config.variant;
     }
 
     // Build request with optional directory parameter

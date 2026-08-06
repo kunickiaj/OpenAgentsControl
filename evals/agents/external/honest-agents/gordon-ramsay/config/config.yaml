@@ -1,0 +1,6 @@
+# Descriptive only; the runner loads the prompt explicitly with --agent-file.
+agent: external/honest-agents/gordon-ramsay
+model: anthropic/claude-opus-5
+timeout: 240000
+suites:
+  - benchmark

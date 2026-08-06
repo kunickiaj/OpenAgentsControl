@@ -44,9 +44,10 @@ import type { ServerEvent } from './event-stream-handler.js';
 import type { AggregatedResult } from '../evaluators/evaluator-runner.js';
 import { homedir } from 'os';
 import { join } from 'path';
-import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { findGitRoot } from '../config.js';
+import { applyAgentMode, applyModelVariant } from './agent-frontmatter.js';
+import { verifyAgentSourceSha256 } from './agent-source.js';
 
 export interface TestRunnerConfig {
   /**
@@ -98,6 +99,15 @@ export interface TestRunnerConfig {
    * - "openai/gpt-4-turbo"
    */
   defaultModel?: string;
+
+  /** Model reasoning variant injected into the evaluated agent frontmatter. */
+  defaultVariant?: string;
+
+  /** Optional external agent prompt used instead of a repository agent definition. */
+  agentSourcePath?: string;
+
+  /** Expected digest for the external agent prompt. */
+  expectedAgentSourceSha256?: string;
 }
 
 export interface TestResult {
@@ -172,6 +182,9 @@ export class TestRunner {
       projectPath: config.projectPath || gitRoot,
       runEvaluators: config.runEvaluators ?? true,
       defaultModel: config.defaultModel || 'opencode/grok-code',
+      defaultVariant: config.defaultVariant || '',
+      agentSourcePath: config.agentSourcePath || '',
+      expectedAgentSourceSha256: config.expectedAgentSourceSha256 || '',
     };
 
     // Set DEBUG_VERBOSE BEFORE creating logger so event handlers can check it
@@ -254,6 +267,8 @@ export class TestRunner {
       'TestEngineer': 'subagents/code/tester.md',
       'reviewer': 'subagents/code/reviewer.md',
       'CodeReviewer': 'subagents/code/reviewer.md',
+      'adversarial-reviewer': 'subagents/code/adversarial-reviewer.md',
+      'AdversarialReviewer': 'subagents/code/adversarial-reviewer.md',
       'build-agent': 'subagents/code/build-agent.md',
       'BuildAgent': 'subagents/code/build-agent.md',
       'codebase-pattern-analyst': 'subagents/code/codebase-pattern-analyst.md',
@@ -286,7 +301,7 @@ export class TestRunner {
     
     // Support full paths (e.g., "subagents/code/coder-agent") or just names (e.g., "coder-agent")
     const targetAgentPath = agentMap[agentName] || `${agentName}.md`;
-    const sourceAgentPath = join(agentDir, targetAgentPath);
+    const sourceAgentPath = this.config.agentSourcePath || join(agentDir, targetAgentPath);
     
     // Check if source agent exists
     if (!existsSync(sourceAgentPath)) {
@@ -298,23 +313,30 @@ export class TestRunner {
     }
     
     try {
-      // Copy target agent's prompt to eval-runner.md
-      execSync(`cp "${sourceAgentPath}" "${evalRunnerPath}"`, { cwd: agentDir });
+      let prompt = readFileSync(sourceAgentPath, 'utf8');
+      verifyAgentSourceSha256(
+        prompt,
+        this.config.expectedAgentSourceSha256,
+        sourceAgentPath
+      );
+
+      if (this.config.defaultVariant) {
+        prompt = applyModelVariant(prompt, this.config.defaultVariant);
+      }
       
       // If testing subagent standalone, force mode: primary
       if (forceStandalone) {
-        execSync(
-          `sed -i '' 's/mode: subagent/mode: primary/' "${evalRunnerPath}"`,
-          { cwd: agentDir }
-        );
+        prompt = applyAgentMode(prompt, 'primary');
         
         if (this.config.debug) {
           this.logger.log(`[TestRunner] Forced mode: primary for standalone subagent testing`);
         }
       }
+
+      writeFileSync(evalRunnerPath, prompt, 'utf8');
       
       if (this.config.debug) {
-        this.logger.log(`[TestRunner] Configured eval-runner.md with ${targetAgentPath}`);
+        this.logger.log(`[TestRunner] Configured eval-runner.md with ${sourceAgentPath}`);
       }
     } catch (error) {
       throw new Error(`Failed to setup eval-runner: ${(error as Error).message}`);
@@ -367,10 +389,7 @@ If you see this prompt during a test run, something went wrong with the test set
     
     try {
       // Write the simple template back
-      execSync(`cat > "${evalRunnerPath}" << 'EVALRUNNER_EOF'\n${template}\nEVALRUNNER_EOF`, { 
-        cwd: agentDir,
-        shell: '/bin/bash'
-      });
+      writeFileSync(evalRunnerPath, template, 'utf8');
       
       if (this.config.debug) {
         this.logger.log(`[TestRunner] Restored eval-runner.md to template`);
@@ -419,6 +438,8 @@ If you see this prompt during a test run, something went wrong with the test set
         defaultTimeout: this.config.defaultTimeout,
         projectPath: this.config.projectPath,
         defaultModel: this.config.defaultModel,
+        defaultVariant: this.config.defaultVariant,
+        executionAgent: 'Eval Runner',
         debug: this.config.debug,
       },
       this.logger
@@ -475,13 +496,13 @@ If you see this prompt during a test run, something went wrong with the test set
       this.eventHandler = null;
     }
 
+    // Restore before server teardown so cleanup survives server stop failures.
+    this.restoreEvalRunner();
+
     this.logger.log('Stopping server...');
     await this.server.stop();
     this.client = null;
     this.executor = null;
-    
-    // Restore eval-runner.md to original state
-    this.restoreEvalRunner();
   }
 
   /**

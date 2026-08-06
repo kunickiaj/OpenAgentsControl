@@ -243,6 +243,19 @@
         "context:review-ref"
       ]
     },
+    "adversarial-reviewer": {
+      "id": "adversarial-reviewer",
+      "name": "AdversarialReviewer",
+      "category": "subagents/code",
+      "type": "subagent",
+      "version": "1.0.0",
+      "author": "custom",
+      "tags": ["review", "correctness", "security", "adversarial"],
+      "dependencies": [
+        "context:standards-code",
+        "context:review-ref"
+      ]
+    },
     "build-agent": {
       "id": "build-agent",
       "name": "BuildAgent",
