@@ -76,13 +76,23 @@ find_project_root() {
     # disabling the boundary. `cd ~` falls back to the passwd entry when $HOME
     # is unset, and `pwd -P` emits a canonical path with neither problem.
     dir="$(pwd -P)"
-    home="$(cd ~ 2>/dev/null && pwd -P)" || home=""
-    if [ -z "$home" ]; then
-        # ~ was unresolvable (missing or unreadable). Fall back to $HOME with
-        # trailing slashes stripped, so the comparison is still normalized.
-        home="${HOME:-}"
-        while [ "$home" != "${home%/}" ]; do home="${home%/}"; done
+    home=""
+    if [ -n "${HOME:-}" ]; then
+        home="$(cd "$HOME" 2>/dev/null && pwd -P)" || home=""
+        if [ -z "$home" ]; then
+            # $HOME does not resolve (missing or unreadable). Normalize it
+            # lexically so the comparison stays slash-insensitive.
+            home="$HOME"
+            while [ "$home" != "${home%/}" ]; do home="${home%/}"; done
+        fi
+    elif [ -z "${HOME+x}" ]; then
+        # $HOME is not set at all; ~ falls back to the passwd entry.
+        home="$(cd ~ 2>/dev/null && pwd -P)" || home=""
     fi
+    # A $HOME exported as the empty string deliberately leaves home unset: both
+    # `cd ""` and `cd ~` are successful no-ops there, so trusting either would
+    # pin the boundary to the current directory and stop the walk before it
+    # started. No usable home means no boundary, as it was before one existed.
     while [ "$dir" != "/" ]; do
         # .git is tested before the boundary: a repository legitimately rooted
         # at $HOME (yadm, a bare dotfiles checkout) is a real project root and

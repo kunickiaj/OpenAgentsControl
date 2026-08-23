@@ -37,9 +37,13 @@ function findProjectRoot(): string {
   // verbatim, so a trailing slash or a symlinked home never matches a path
   // built from dirname(); realpath normalizes both to the same form.
   const start = canonicalize(process.cwd()) || process.cwd();
-  // path.resolve strips trailing slashes without touching the filesystem, so
-  // the boundary still normalizes when realpath fails (missing/unreadable).
-  const home = canonicalize(os.homedir()) || path.resolve(os.homedir());
+  // os.homedir() returns "" when HOME is exported empty, and path.resolve("")
+  // is the cwd - trusting that would pin the boundary to the current directory
+  // and stop the walk before it started. No usable home means no boundary.
+  // path.resolve otherwise strips trailing slashes without touching the disk,
+  // so the boundary still normalizes when realpath fails.
+  const rawHome = os.homedir();
+  const home = rawHome ? (canonicalize(rawHome) || path.resolve(rawHome)) : undefined;
   let dir = start;
   while (dir !== path.dirname(dir)) {
     // .git is tested before the boundary: a repository legitimately rooted at
