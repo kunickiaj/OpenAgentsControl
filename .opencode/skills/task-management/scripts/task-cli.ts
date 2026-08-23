@@ -20,18 +20,49 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 // Find project root (look for .git or package.json)
+function canonicalize(p: string): string | undefined {
+  try {
+    return fs.realpathSync(p);
+  } catch {
+    return undefined;
+  }
+}
+
 function findProjectRoot(): string {
-  let dir = process.cwd();
+  // Canonicalize both sides before comparing. os.homedir() returns $HOME
+  // verbatim, so a trailing slash or a symlinked home never matches a path
+  // built from dirname(); realpath normalizes both to the same form.
+  const start = canonicalize(process.cwd()) || process.cwd();
+  // os.homedir() returns "" when HOME is exported empty, and path.resolve("")
+  // is the cwd - trusting that would pin the boundary to the current directory
+  // and stop the walk before it started. No usable home means no boundary.
+  // path.resolve otherwise strips trailing slashes without touching the disk,
+  // so the boundary still normalizes when realpath fails.
+  const rawHome = os.homedir();
+  const home = rawHome ? (canonicalize(rawHome) || path.resolve(rawHome)) : undefined;
+  let dir = start;
   while (dir !== path.dirname(dir)) {
-    if (fs.existsSync(path.join(dir, '.git')) || fs.existsSync(path.join(dir, 'package.json'))) {
+    // .git is tested before the boundary: a repository legitimately rooted at
+    // the home directory (yadm, a bare dotfiles checkout) is a real project
+    // root and must still win.
+    if (fs.existsSync(path.join(dir, '.git'))) {
+      return dir;
+    }
+    // Stop at the home directory otherwise, so a stray package.json there
+    // (corepack, a mistyped install) cannot make all of $HOME the root.
+    if (home && dir === home) {
+      break;
+    }
+    if (fs.existsSync(path.join(dir, 'package.json'))) {
       return dir;
     }
     dir = path.dirname(dir);
   }
-  return process.cwd();
+  return start;
 }
 
 const PROJECT_ROOT = findProjectRoot();

@@ -69,17 +69,50 @@ fi
 
 # Find project root
 find_project_root() {
-    local dir
-    dir="$(pwd)"
+    local dir home
+    # Canonicalize both sides before comparing. A raw "$dir" != "$HOME" test is
+    # not enough: $HOME may carry a trailing slash or route through a symlink,
+    # so a path built from dirname() never matches it. Resolving through cd and
+    # `pwd -P` puts both sides in the same canonical form.
+    dir="$(pwd -P)"
+    home=""
+    if [ -n "${HOME:-}" ]; then
+        home="$(cd "$HOME" 2>/dev/null && pwd -P)" || home=""
+        if [ -z "$home" ]; then
+            # $HOME does not resolve (missing or unreadable). Normalize it
+            # lexically so the comparison stays slash-insensitive.
+            home="$HOME"
+            while [ "$home" != "${home%/}" ]; do home="${home%/}"; done
+        fi
+    elif [ -z "${HOME+x}" ]; then
+        # $HOME is not set at all; ~ falls back to the passwd entry.
+        home="$(cd ~ 2>/dev/null && pwd -P)" || home=""
+    fi
+    # A $HOME exported as the empty string deliberately leaves home unset: both
+    # `cd ""` and `cd ~` are successful no-ops there, so trusting either would
+    # pin the boundary to the current directory and stop the walk before it
+    # started. No usable home means no boundary, as it was before one existed.
     while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ] || [ -f "$dir/package.json" ]; then
+        # .git is tested before the boundary: a repository legitimately rooted
+        # at $HOME (yadm, a bare dotfiles checkout) is a real project root and
+        # must still win. -e, not -d: in a linked worktree .git is a file.
+        if [ -e "$dir/.git" ]; then
+            echo "$dir"
+            return 0
+        fi
+        # Stop at $HOME otherwise, so a stray package.json there (corepack, a
+        # mistyped install) cannot make the whole home directory the root.
+        if [ -n "$home" ] && [ "$dir" = "$home" ]; then
+            break
+        fi
+        if [ -f "$dir/package.json" ]; then
             echo "$dir"
             return 0
         fi
         dir="$(dirname "$dir")"
     done
-    pwd
-    return 1
+    pwd -P
+    return 0
 }
 
 # Handle help
