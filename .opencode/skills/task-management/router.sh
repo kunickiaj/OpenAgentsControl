@@ -69,19 +69,34 @@ fi
 
 # Find project root
 find_project_root() {
-    local dir
-    dir="$(pwd)"
-    # Stop at $HOME: a stray package.json there (corepack, a mistyped install)
-    # would otherwise make the entire home directory the "project root".
-    # Use -e for .git so linked worktrees, where .git is a file, still match.
-    while [ "$dir" != "/" ] && [ "$dir" != "$HOME" ]; do
+    local dir home
+    # Canonicalize both sides before comparing. A raw "$dir" != "$HOME" test is
+    # not enough: $HOME may carry a trailing slash or route through a symlink,
+    # and when $HOME is unset the comparison against "" never matches, silently
+    # disabling the boundary. `cd ~` falls back to the passwd entry when $HOME
+    # is unset, and `pwd -P` emits a canonical path with neither problem.
+    dir="$(pwd -P)"
+    home="$(cd ~ 2>/dev/null && pwd -P)" || home=""
+    if [ -z "$home" ]; then
+        # ~ was unresolvable (missing or unreadable). Fall back to $HOME with
+        # trailing slashes stripped, so the comparison is still normalized.
+        home="${HOME:-}"
+        while [ "$home" != "${home%/}" ]; do home="${home%/}"; done
+    fi
+    while [ "$dir" != "/" ]; do
+        # Stop at $HOME: a stray package.json there (corepack, a mistyped
+        # install) would otherwise make the whole home directory the root.
+        if [ -n "$home" ] && [ "$dir" = "$home" ]; then
+            break
+        fi
+        # -e, not -d: in a linked worktree .git is a file, not a directory.
         if [ -e "$dir/.git" ] || [ -f "$dir/package.json" ]; then
             echo "$dir"
             return 0
         fi
         dir="$(dirname "$dir")"
     done
-    pwd
+    pwd -P
     return 0
 }
 

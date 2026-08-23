@@ -20,21 +20,39 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 // Find project root (look for .git or package.json)
+function canonicalize(p: string): string | undefined {
+  try {
+    return fs.realpathSync(p);
+  } catch {
+    return undefined;
+  }
+}
+
 function findProjectRoot(): string {
-  // Stop at the home directory: a stray package.json there (corepack, a
-  // mistyped install) would otherwise make all of $HOME the "project root".
-  const home = require('os').homedir();
-  let dir = process.cwd();
-  while (dir !== path.dirname(dir) && dir !== home) {
+  // Canonicalize both sides before comparing. os.homedir() returns $HOME
+  // verbatim, so a trailing slash or a symlinked home never matches a path
+  // built from dirname(); realpath normalizes both to the same form.
+  const start = canonicalize(process.cwd()) || process.cwd();
+  // path.resolve strips trailing slashes without touching the filesystem, so
+  // the boundary still normalizes when realpath fails (missing/unreadable).
+  const home = canonicalize(os.homedir()) || path.resolve(os.homedir());
+  let dir = start;
+  while (dir !== path.dirname(dir)) {
+    // Stop at the home directory: a stray package.json there (corepack, a
+    // mistyped install) would otherwise make all of $HOME the project root.
+    if (home && dir === home) {
+      break;
+    }
     if (fs.existsSync(path.join(dir, '.git')) || fs.existsSync(path.join(dir, 'package.json'))) {
       return dir;
     }
     dir = path.dirname(dir);
   }
-  return process.cwd();
+  return start;
 }
 
 const PROJECT_ROOT = findProjectRoot();
