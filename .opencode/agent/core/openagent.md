@@ -4,6 +4,7 @@ description: "Default general-purpose agent for coding, docs, analysis, and work
 mode: primary
 temperature: 0.2
 permission:
+  question: "allow"
   bash:
     "rm -rf *": "ask"
     "rm -rf /*": "deny"

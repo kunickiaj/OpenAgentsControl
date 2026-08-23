@@ -24,8 +24,11 @@ const path = require('path');
 
 // Find project root (look for .git or package.json)
 function findProjectRoot(): string {
+  // Stop at the home directory: a stray package.json there (corepack, a
+  // mistyped install) would otherwise make all of $HOME the "project root".
+  const home = require('os').homedir();
   let dir = process.cwd();
-  while (dir !== path.dirname(dir)) {
+  while (dir !== path.dirname(dir) && dir !== home) {
     if (fs.existsSync(path.join(dir, '.git')) || fs.existsSync(path.join(dir, 'package.json'))) {
       return dir;
     }

@@ -71,15 +71,18 @@ fi
 find_project_root() {
     local dir
     dir="$(pwd)"
-    while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ] || [ -f "$dir/package.json" ]; then
+    # Stop at $HOME: a stray package.json there (corepack, a mistyped install)
+    # would otherwise make the entire home directory the "project root".
+    # Use -e for .git so linked worktrees, where .git is a file, still match.
+    while [ "$dir" != "/" ] && [ "$dir" != "$HOME" ]; do
+        if [ -e "$dir/.git" ] || [ -f "$dir/package.json" ]; then
             echo "$dir"
             return 0
         fi
         dir="$(dirname "$dir")"
     done
     pwd
-    return 1
+    return 0
 }
 
 # Handle help
