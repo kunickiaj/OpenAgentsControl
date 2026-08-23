@@ -42,12 +42,18 @@ function findProjectRoot(): string {
   const home = canonicalize(os.homedir()) || path.resolve(os.homedir());
   let dir = start;
   while (dir !== path.dirname(dir)) {
-    // Stop at the home directory: a stray package.json there (corepack, a
-    // mistyped install) would otherwise make all of $HOME the project root.
+    // .git is tested before the boundary: a repository legitimately rooted at
+    // the home directory (yadm, a bare dotfiles checkout) is a real project
+    // root and must still win.
+    if (fs.existsSync(path.join(dir, '.git'))) {
+      return dir;
+    }
+    // Stop at the home directory otherwise, so a stray package.json there
+    // (corepack, a mistyped install) cannot make all of $HOME the root.
     if (home && dir === home) {
       break;
     }
-    if (fs.existsSync(path.join(dir, '.git')) || fs.existsSync(path.join(dir, 'package.json'))) {
+    if (fs.existsSync(path.join(dir, 'package.json'))) {
       return dir;
     }
     dir = path.dirname(dir);

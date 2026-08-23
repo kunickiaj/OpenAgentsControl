@@ -84,13 +84,19 @@ find_project_root() {
         while [ "$home" != "${home%/}" ]; do home="${home%/}"; done
     fi
     while [ "$dir" != "/" ]; do
-        # Stop at $HOME: a stray package.json there (corepack, a mistyped
-        # install) would otherwise make the whole home directory the root.
+        # .git is tested before the boundary: a repository legitimately rooted
+        # at $HOME (yadm, a bare dotfiles checkout) is a real project root and
+        # must still win. -e, not -d: in a linked worktree .git is a file.
+        if [ -e "$dir/.git" ]; then
+            echo "$dir"
+            return 0
+        fi
+        # Stop at $HOME otherwise, so a stray package.json there (corepack, a
+        # mistyped install) cannot make the whole home directory the root.
         if [ -n "$home" ] && [ "$dir" = "$home" ]; then
             break
         fi
-        # -e, not -d: in a linked worktree .git is a file, not a directory.
-        if [ -e "$dir/.git" ] || [ -f "$dir/package.json" ]; then
+        if [ -f "$dir/package.json" ]; then
             echo "$dir"
             return 0
         fi
