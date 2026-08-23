@@ -72,9 +72,8 @@ find_project_root() {
     local dir home
     # Canonicalize both sides before comparing. A raw "$dir" != "$HOME" test is
     # not enough: $HOME may carry a trailing slash or route through a symlink,
-    # and when $HOME is unset the comparison against "" never matches, silently
-    # disabling the boundary. `cd ~` falls back to the passwd entry when $HOME
-    # is unset, and `pwd -P` emits a canonical path with neither problem.
+    # so a path built from dirname() never matches it. Resolving through cd and
+    # `pwd -P` puts both sides in the same canonical form.
     dir="$(pwd -P)"
     home=""
     if [ -n "${HOME:-}" ]; then
