@@ -1,0 +1,9 @@
+# ProseWriter - General prose drafting and revision test configuration
+# Legacy metadata only: the SDK runner does not load this file.
+
+agent: content/prose-writer
+timeout: 60000
+
+suites:
+  - smoke
+  - standalone

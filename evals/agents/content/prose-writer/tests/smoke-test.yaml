@@ -1,0 +1,55 @@
+id: content-prose-writer-rewrite-prose
+name: "ProseWriter: Concise Rewrite"
+description: |
+  Verifies that ProseWriter tightens bloated prose, preserves its core meaning,
+  and removes stock AI language without using tools or requesting approval.
+category: business
+
+prompts:
+  - text: |
+      Rewrite this paragraph concisely while preserving its meaning:
+
+      "It's worth noting that the committee's comprehensive evaluation process
+      facilitated the identification of a robust approach that can leverage
+      volunteer availability. Crucially, implementation of the new schedule will
+      enable the reduction of missed shifts while maintaining weekend coverage."
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustNotUseTools: [bash, write, edit, task, read, glob, grep, list, apply_patch, webfetch, todowrite]
+  minToolCalls: 0
+  maxToolCalls: 0
+  requiresApproval: false
+  expectedResponse:
+    contains:
+      - "volunteer"
+      - "missed shifts"
+      - "weekend coverage"
+    notContains:
+      - "It's worth noting"
+      - "comprehensive evaluation process"
+      - "robust approach"
+      - "leverage"
+      - "facilitated the identification"
+    description: "Rewrite should preserve the scheduling outcome in direct, concise prose"
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: "A supplied rewrite needs no approval"
+  - rule: tool-usage
+    shouldViolate: false
+    severity: error
+    description: "The prompt contains all required text"
+
+timeout: 60000
+
+tags:
+  - smoke-test
+  - subagent
+  - content-prose-writer
+  - rewrite
+  - read-only

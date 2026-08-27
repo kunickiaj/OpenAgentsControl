@@ -23,6 +23,15 @@
         "core/standards/docs",
         "core/essential-patterns"
       ]
+    },
+    "prose-writer": {
+      "description": "General-purpose prose drafting and revision specialist",
+      "commonSubagents": [],
+      "commonTools": [],
+      "commonContext": [
+        "core/standards/docs",
+        "core/essential-patterns"
+      ]
     }
   }
 }

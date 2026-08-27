@@ -1,0 +1,61 @@
+id: content-prose-writer-general-draft
+name: "ProseWriter: Non-Technical Community Draft"
+description: |
+  Verifies that ProseWriter drafts a warm, direct community message while
+  preserving supplied details and avoiding corporate or technical language.
+category: creative
+
+prompts:
+  - text: |
+      Write a warm, direct message to members of the Maple Street Community
+      Garden about a schedule change. Saturday's work session is moving from
+      9:00 a.m. to 10:30 a.m. because heavy rain is expected early in the
+      morning. The session still ends at noon. Ask members to bring gloves, and
+      tell anyone who cannot attend to email garden@maplestreet.org. Keep it
+      under 120 words.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustNotUseTools: [bash, write, edit, task, read, glob, grep, list, apply_patch, webfetch, todowrite]
+  minToolCalls: 0
+  maxToolCalls: 0
+  requiresApproval: false
+  expectedResponse:
+    contains:
+      - "10:30"
+      - "noon"
+      - "gloves"
+      - "garden@maplestreet.org"
+    notContains:
+      - "Here's the message"
+      - "Here you go"
+      - "Feel free"
+      - "Let me know"
+      - "120 words"
+      - "stakeholders"
+      - "implementation"
+      - "leverage"
+      - "technical"
+      - "robust"
+    description: "Message should preserve the practical details in a warm, direct voice"
+
+expectedViolations:
+  - rule: approval-gate
+    shouldViolate: false
+    severity: error
+    description: "Drafting a supplied community message needs no approval"
+  - rule: tool-usage
+    shouldViolate: false
+    severity: error
+    description: "All facts are included in the prompt"
+
+timeout: 60000
+
+tags:
+  - standalone
+  - subagent
+  - content-prose-writer
+  - general-prose
+  - read-only
