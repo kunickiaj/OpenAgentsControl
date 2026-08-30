@@ -107,6 +107,16 @@
         "context:standards-docs"
       ]
     },
+    "prose-writer": {
+      "id": "prose-writer",
+      "name": "Prose Writer",
+      "category": "content",
+      "type": "agent",
+      "version": "1.0.0",
+      "author": "opencode",
+      "tags": ["content", "prose", "writing", "revision"],
+      "dependencies": []
+    },
     "data-analyst": {
       "id": "data-analyst",
       "name": "Data Analyst",

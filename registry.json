@@ -43,6 +43,21 @@
         "category": "content"
       },
       {
+        "id": "prose-writer",
+        "name": "ProseWriter",
+        "type": "agent",
+        "path": ".opencode/agent/content/prose-writer.md",
+        "description": "Drafts and revises clear, audience-aware prose in any domain",
+        "tags": [
+          "content",
+          "prose",
+          "writing",
+          "revision"
+        ],
+        "dependencies": [],
+        "category": "content"
+      },
+      {
         "id": "copywriter",
         "name": "OpenCopywriter",
         "type": "agent",
@@ -716,6 +731,24 @@
       }
     ],
     "skills": [
+      {
+        "id": "engineering-briefs",
+        "name": "Engineering Briefs",
+        "type": "skill",
+        "path": ".opencode/skills/engineering-briefs/SKILL.md",
+        "description": "Shapes engineering decisions, proposals, results, and recommendations into concise briefs",
+        "tags": [
+          "engineering",
+          "decisions",
+          "proposals",
+          "writing"
+        ],
+        "dependencies": [],
+        "category": "specialized",
+        "files": [
+          ".opencode/skills/engineering-briefs/SKILL.md"
+        ]
+      },
       {
         "id": "task-management",
         "name": "Task Management",
@@ -3173,6 +3206,7 @@
       "components": [
         "agent:openagent",
         "agent:opencoder",
+        "agent:prose-writer",
         "subagent:task-manager",
         "subagent:frontend-specialist",
         "subagent:devops-specialist",
@@ -3184,6 +3218,7 @@
         "subagent:build-agent",
         "subagent:contextscout",
         "skill:task-management",
+        "skill:engineering-briefs",
         "command:commit",
         "command:test",
         "command:context",
@@ -3222,12 +3257,14 @@
         "agent:openagent",
         "agent:copywriter",
         "agent:technical-writer",
+        "agent:prose-writer",
         "agent:data-analyst",
         "subagent:task-manager",
         "subagent:contextscout",
         "subagent:documentation",
         "subagent:image-specialist",
         "skill:task-management",
+        "skill:engineering-briefs",
         "command:context",
         "command:add-context",
         "command:clean",
@@ -3255,6 +3292,7 @@
         "agent:eval-runner",
         "agent:copywriter",
         "agent:technical-writer",
+        "agent:prose-writer",
         "agent:data-analyst",
         "subagent:task-manager",
         "subagent:frontend-specialist",
@@ -3267,6 +3305,7 @@
         "subagent:build-agent",
         "subagent:contextscout",
         "skill:task-management",
+        "skill:engineering-briefs",
         "subagent:image-specialist",
         "command:test",
         "command:commit",
@@ -3314,6 +3353,7 @@
         "agent:eval-runner",
         "agent:copywriter",
         "agent:technical-writer",
+        "agent:prose-writer",
         "agent:data-analyst",
         "subagent:task-manager",
         "subagent:frontend-specialist",
@@ -3328,6 +3368,7 @@
         "subagent:context-retriever",
         "subagent:contextscout",
         "skill:task-management",
+        "skill:engineering-briefs",
         "subagent:domain-analyzer",
         "subagent:agent-generator",
         "subagent:context-organizer",

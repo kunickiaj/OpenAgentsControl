@@ -5,6 +5,7 @@
   "components": [
     "agent:openagent",
     "agent:opencoder",
+    "agent:prose-writer",
     "subagent:task-manager",
     "subagent:frontend-specialist",
     "subagent:devops-specialist",
@@ -16,6 +17,7 @@
     "subagent:build-agent",
     "subagent:contextscout",
     "skill:task-management",
+    "skill:engineering-briefs",
     "command:commit",
     "command:test",
     "command:context",
