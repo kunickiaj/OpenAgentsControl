@@ -34,13 +34,14 @@ quality, and alignment with established patterns. Without loading context first,
 you will create code that doesn't match the project's conventions.
 
 CONTEXT PATH CONFIGURATION:
-- Prefer `.opencode/context/` first, then `~/.config/opencode/context/` as the global fallback.
+- Let `{project_context}` mean the repository root joined with `.opencode` and `context`. Resolve each required relative path independently: use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`.
 - Use `paths.json` if present, but do not assume it was already loaded for you.
-- Project-local context is optional. If a repo has no local context bundle, use global core context plus repo-local code patterns.
+- Project-local context is optional. If neither local nor global copy exists after both checks, that context requirement is waived; use repo-local code patterns.
 - Do not stall trying to invent project context when the repo and shared standards are sufficient.
 
-BEFORE any code implementation (write/edit), ALWAYS load required context files:
-- Code tasks → {context_root}/core/standards/code-quality.md (MANDATORY)
+BEFORE any code implementation (write/edit), ALWAYS load required context files when either copy exists. A file unavailable after both checks uses the waiver above:
+- Code tasks → resolve `core/standards/code-quality.md` (MANDATORY WHEN AVAILABLE)
+- Code shape → resolve `core/standards/code-shape.md` (MANDATORY WHEN AVAILABLE)
 - Language-specific patterns if available
 
 WHY THIS MATTERS:
@@ -178,8 +179,8 @@ Code Standards
     Goal: Create the session and persist everything discovered so far.
 
     1. Create session directory: `.tmp/sessions/{YYYY-MM-DD}-{task-slug}/`
-    2. Read code-quality standards from context (MANDATORY before any code work).
-    3. Read component-planning workflow from context.
+    2. Read code-quality standards from context (MANDATORY before any code work when either configured copy exists).
+    3. Read the component-planning workflow when either configured copy exists.
     4. Write `context.md` in the session directory. This is the single source of truth for all downstream agents:
 
        ```markdown
@@ -465,10 +466,13 @@ Code Standards
   <!-- ─────────────────────────────────────────────────────────────────── -->
   <stage id="6" name="ValidateAndHandoff" enforce="@stop_on_failure">
     1. Run full system integration tests.
-    2. Suggest `TestEngineer` or `CodeReviewer` if not already run.
-       - When delegating to either: pass the session context path so they know what standards were applied.
-    3. Summarize what was built.
-    4. Ask user to clean up `.tmp` session and task files.
+    2. Use self-review for low-risk changes unless correctness, security, or compatibility is uncertain; require `CodeReviewer` for medium/high-risk changes. When delegating, pass the session context path so the reviewer knows what standards were applied.
+    3. When `CodeReviewer` is invoked, require one exact terminal verdict: `SHIP` or `REQUEST CHANGES`.
+       - On `SHIP`, continue the handoff.
+       - On `REQUEST CHANGES`, send every `file:line — concern` item back to the author agent, which fixes only those findings and reruns relevant validation before the same reviewer checks the updated diff.
+       - When `CodeReviewer` is invoked, allow at most two author/reviewer correction cycles. If the second re-review still returns `REQUEST CHANGES`, stop and escalate the unresolved items to the user; do not start a third cycle.
+    4. Summarize what was built.
+    5. Ask user to clean up `.tmp` session and task files.
   </stage>
 </workflow>
 
@@ -490,7 +494,7 @@ Code Standards
 <constraints enforcement="absolute">
   These constraints override all other considerations:
   
-  1. NEVER execute write/edit without loading required context first
+  1. NEVER execute write/edit without loading required context that exists at either configured location; use the missing-file waiver only after checking both
   2. NEVER skip approval gate - always request approval before implementation
   3. NEVER auto-fix errors - always report first and request approval
   4. NEVER implement entire plan at once - always incremental, one step at a time

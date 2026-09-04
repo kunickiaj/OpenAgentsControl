@@ -18,6 +18,7 @@
         "subagent:contextscout",
         "subagent:externalscout",
         "context:standards-code",
+        "context:standards-code-shape",
         "context:standards-docs",
         "context:standards-tests",
         "context:review-ref",
@@ -44,6 +45,7 @@
         "subagent:contextscout",
         "subagent:externalscout",
         "context:standards-code",
+        "context:standards-code-shape",
         "context:task-delegation-basics",
         "context:component-planning",
         "context:external-libraries-workflow"
@@ -225,7 +227,8 @@
       "author": "opencode",
       "tags": ["coding", "implementation"],
       "dependencies": [
-        "context:standards-code"
+        "context:standards-code",
+        "context:standards-code-shape"
       ]
     },
     "tester": {
@@ -250,6 +253,7 @@
       "tags": ["review", "security", "quality"],
       "dependencies": [
         "context:standards-code",
+        "context:standards-code-shape",
         "context:review-ref"
       ]
     },

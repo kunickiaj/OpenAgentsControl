@@ -64,7 +64,7 @@ permission:
 
 ## 🔍 ContextScout — Your First Move
 
-**Load context before writing any code.** Prefer `context_files` already supplied in the task JSON. If those are incomplete, read local/global core standards. Call ContextScout only to fill real gaps.
+**Load available context before writing any code.** Prefer `context_files` already supplied in the task JSON. Let `{project_context}` mean the repository root joined with `.opencode` and `context`. For each missing relative context path, use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`. Never assume the target repository has a complete project context tree. If neither copy exists after both checks, that context requirement is waived; use repo-local code patterns. Call ContextScout only to fill real gaps.
 
 ### When to Call ContextScout
 
@@ -114,7 +114,7 @@ Read the subtask JSON to understand:
 
 **Read each file listed in `reference_files`** to understand existing patterns, conventions, and code structure before implementing. These are the source files and project code you need to study — not standards documents.
 
-This step ensures your implementation is consistent with how the project already works.
+If a reference file has code-shape warnings, copy its API, naming, and error-handling conventions, but do not copy the warned structure. Prefer repository-listed exemplars when available.
 
 ### Step 3: Verify Context Coverage
 
@@ -160,6 +160,11 @@ For each item in `deliverables`:
 
 **Run ALL checks before signaling completion. Do not skip any.**
 
+#### Check 0: Lint Feedback
+- Treat every hook-reported new or worsened diagnostic as an immediate local correction.
+- Fix each reported regression or revise the edit before completion. Do not broaden the subtask to clean unrelated legacy diagnostics.
+- Note pre-existing findings when useful, but never mark the subtask complete with a new regression because its first fix would require wider restructuring.
+
 #### Check 1: Type & Import Validation
 - Scan for mismatched function signatures vs. usage
 - Verify all imports/exports exist (use `glob` to confirm file paths)
@@ -186,8 +191,10 @@ Use `grep` on your deliverables to catch:
 #### Self-Review Report
 Include this in your completion summary:
 ```
-Self-Review: ✅ Types clean | ✅ Imports verified | ✅ No debug artifacts | ✅ All acceptance criteria met | ✅ External libs verified
+Self-Review: Lint: <✅ checked, no regressions | ✅ feedback addressed | ⚪ not checked, no lint signal> | ✅ Types clean | ✅ Imports verified | ✅ No debug artifacts | ✅ All acceptance criteria met | ✅ External libs verified
 ```
+
+Choose the lint status from evidence. Use `checked, no regressions` only when a lint command or hook supplied a clean result; use `feedback addressed` when returned lint feedback was fixed; otherwise report `not checked, no lint signal`.
 
 If ANY check fails → fix the issue. Do not signal completion until all checks pass.
 
@@ -223,7 +230,7 @@ Example completion report:
 ```
 ✅ Subtask {feature}-{seq} COMPLETED
 
-Self-Review: ✅ Types clean | ✅ Imports verified | ✅ No debug artifacts | ✅ All acceptance criteria met | ✅ External libs verified
+Self-Review: Lint: ⚪ not checked, no lint signal | ✅ Types clean | ✅ Imports verified | ✅ No debug artifacts | ✅ All acceptance criteria met | ✅ External libs verified
 
 Deliverables:
 - src/auth/service.ts

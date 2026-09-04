@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
@@ -231,12 +231,20 @@ describe('listBundledFiles', () => {
 
     // Create a fake package structure with files in all three subdirs
     await mkdir(join(packageRoot, '.opencode', 'agent', 'core'), { recursive: true });
+    await mkdir(join(packageRoot, '.opencode', 'command'), { recursive: true });
     await mkdir(join(packageRoot, '.opencode', 'context'), { recursive: true });
+    await mkdir(join(packageRoot, '.opencode', 'plugin', 'node_modules', 'dependency'), { recursive: true });
     await mkdir(join(packageRoot, '.opencode', 'skills', 'sub'), { recursive: true });
 
     await writeFile(join(packageRoot, '.opencode', 'agent', 'core', 'openagent.md'), '# Agent', 'utf8');
     await writeFile(join(packageRoot, '.opencode', 'agent', 'helper.md'), '# Helper', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'command', 'check.md'), '# Command', 'utf8');
     await writeFile(join(packageRoot, '.opencode', 'context', 'standards.md'), '# Standards', 'utf8');
+    await writeFile(join(packageRoot, '.opencode', 'plugin', 'node_modules', 'dependency', 'index.js'), 'ignored', 'utf8');
+    await symlink(
+      join(packageRoot, '.opencode', 'context', 'standards.md'),
+      join(packageRoot, '.opencode', 'plugin', 'linked.ts'),
+    );
     await writeFile(join(packageRoot, '.opencode', 'skills', 'sub', 'skill.md'), '# Skill', 'utf8');
   });
 
@@ -252,9 +260,10 @@ describe('listBundledFiles', () => {
     // Assert — all four files should be present
     expect(files).toContain('.opencode/agent/core/openagent.md');
     expect(files).toContain('.opencode/agent/helper.md');
+    expect(files).toContain('.opencode/command/check.md');
     expect(files).toContain('.opencode/context/standards.md');
     expect(files).toContain('.opencode/skills/sub/skill.md');
-    expect(files).toHaveLength(4);
+    expect(files).toHaveLength(5);
   });
 
   // ✅ Positive: paths are relative (not absolute)
@@ -271,6 +280,13 @@ describe('listBundledFiles', () => {
     for (const f of files) {
       expect(f.startsWith('.opencode/')).toBe(true);
     }
+  });
+
+  test('ignores dependency directories and symbolic links', async () => {
+    const files = await listBundledFiles(packageRoot);
+
+    expect(files.some(file => file.includes('node_modules'))).toBe(false);
+    expect(files).not.toContain('.opencode/plugin/linked.ts');
   });
 
   // ❌ Negative: missing subdirectories are silently skipped

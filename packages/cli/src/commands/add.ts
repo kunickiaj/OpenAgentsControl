@@ -2,8 +2,8 @@ import path from 'node:path';
 // node:fs/promises rm is used intentionally — Bun has no built-in recursive directory removal
 import { rm } from 'node:fs/promises';
 import { type Command } from 'commander';
-import { loadRegistry, resolveComponent, listComponents } from '../lib/registry.js';
-import { getPackageRoot, getBundledFilePath } from '../lib/bundled.js';
+import { loadRegistry, resolveComponent, resolveInstallPlan, listComponents } from '../lib/registry.js';
+import { classifyBundledFile, getPackageRoot, getBundledFilePath } from '../lib/bundled.js';
 import { installFile } from '../lib/installer.js';
 import {
   readManifest,
@@ -18,7 +18,7 @@ import { log, info, warn, error, success, verbose } from '../ui/logger.js';
 import { createSpinner } from '../ui/spinner.js';
 import { computeFileHash } from '../lib/sha256.js';
 import { readCliVersion } from '../lib/version.js';
-import type { RegistryComponent } from '../lib/registry.js';
+import type { RegistryComponent, RegistryEntry, Registry } from '../lib/registry.js';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ export type RemoveOptions = {
 /** Returns the destination path (relative to project root) for a component.
  *  Uses component.path directly if it already starts with .opencode/,
  *  otherwise prefixes with the correct subdirectory. */
-const getDestRelativePath = (component: RegistryComponent): string => {
+const getDestRelativePath = (component: RegistryEntry): string => {
   if (component.path.startsWith('.opencode/')) return component.path;
   const base = component.type === 'skill' ? '.opencode/skills' :
                component.type === 'agent' ? '.opencode/agent' :
@@ -51,10 +51,10 @@ const getDestRelativePath = (component: RegistryComponent): string => {
 /** Builds a FileEntry for a newly installed component. */
 const buildFileEntry = (
   sha256: string,
-  component: RegistryComponent,
+  component: RegistryEntry,
 ): FileEntry => ({
   sha256,
-  type: component.type,
+  type: classifyBundledFile(component.path),
   source: 'registry',
   installedAt: new Date().toISOString(),
 });
@@ -101,7 +101,7 @@ const printAvailableComponents = async (_projectRoot: string): Promise<void> => 
 /** Resolves the component from the registry or exits with a clear error. */
 const resolveOrFail = async (
   ref: string,
-): Promise<{ component: RegistryComponent; packageRoot: string }> => {
+): Promise<{ component: RegistryComponent; packageRoot: string; registry: Registry }> => {
   const packageRoot = getPackageRoot();
   const registry = await loadRegistry(packageRoot);
   const component = resolveComponent(registry, ref);
@@ -111,7 +111,7 @@ const resolveOrFail = async (
     process.exit(1);
   }
 
-  return { component, packageRoot };
+  return { component, packageRoot, registry };
 };
 
 /** Checks if the component is already installed and handles --force / warning. */
@@ -119,11 +119,12 @@ const checkAlreadyInstalled = (
   manifest: ManifestFile | null,
   destRelativePath: string,
   force: boolean,
+  componentRef: string,
 ): boolean => {
   if (!isAlreadyInstalled(manifest, destRelativePath)) return false;
 
   if (!force) {
-    warn(`Already installed. Use --force to reinstall.`);
+    warn(`${componentRef} already installed. Use --force to reinstall.`);
     return true; // signal: abort
   }
 
@@ -133,13 +134,13 @@ const checkAlreadyInstalled = (
 
 /** Performs the actual file copy and manifest update. */
 const performInstall = async (
-  component: RegistryComponent,
+  component: RegistryEntry,
   packageRoot: string,
   projectRoot: string,
   destRelativePath: string,
   manifest: ManifestFile,
   opts: AddOptions,
-): Promise<void> => {
+): Promise<ManifestFile> => {
   const sourcePath = getBundledFilePath(packageRoot, component.path);
   const destPath = path.join(projectRoot, destRelativePath);
   const destDir = path.dirname(destRelativePath);
@@ -163,7 +164,7 @@ const performInstall = async (
 
   if (opts.dryRun) {
     info(`[dry-run] Would install ${component.type}:${component.id} to ${destDir}/`);
-    return;
+    return manifest;
   }
 
   const sha256 = await computeFileHash(destPath);
@@ -172,6 +173,7 @@ const performInstall = async (
   await writeManifest(projectRoot, updatedManifest);
 
   success(`Added ${component.id} to ${destDir}/`);
+  return updatedManifest;
 };
 
 // ── Public command functions ──────────────────────────────────────────────────
@@ -196,16 +198,25 @@ export async function addCommand(
   spinner.start();
 
   try {
-    const { component, packageRoot } = await resolveOrFail(ref);
+    const { component, packageRoot, registry } = await resolveOrFail(ref);
     spinner.stop();
 
-    const manifest = (await readManifest(projectRoot)) ?? createEmptyManifest(readCliVersion());
-    const destRelativePath = getDestRelativePath(component);
-
-    const shouldAbort = checkAlreadyInstalled(manifest, destRelativePath, options.force);
-    if (shouldAbort) return;
-
-    await performInstall(component, packageRoot, projectRoot, destRelativePath, manifest, options);
+    let manifest = (await readManifest(projectRoot)) ?? createEmptyManifest(readCliVersion());
+    const installPlan = resolveInstallPlan(registry, `${component.type}:${component.id}`);
+    for (const plannedComponent of installPlan) {
+      const destRelativePath = getDestRelativePath(plannedComponent);
+      const componentRef = `${plannedComponent.type}:${plannedComponent.id}`;
+      const shouldSkip = checkAlreadyInstalled(manifest, destRelativePath, options.force, componentRef);
+      if (shouldSkip) continue;
+      manifest = await performInstall(
+        plannedComponent,
+        packageRoot,
+        projectRoot,
+        destRelativePath,
+        manifest,
+        options,
+      );
+    }
   } catch (err: unknown) {
     spinner.fail();
     const msg = err instanceof Error ? err.message : String(err);

@@ -17,6 +17,7 @@ core/
 ├── standards/
 │   ├── navigation.md
 │   ├── code-quality.md
+│   ├── code-shape.md
 │   ├── test-coverage.md
 │   ├── documentation.md
 │   ├── security-patterns.md
@@ -64,7 +65,7 @@ core/
 
 | Task | Path |
 |------|------|
-| **Write code** | `standards/code-quality.md` |
+| **Write code** | `standards/code-quality.md` + `standards/code-shape.md` |
 | **Write tests** | `standards/test-coverage.md` |
 | **Write docs** | `standards/documentation.md` |
 | **Security patterns** | `standards/security-patterns.md` |
