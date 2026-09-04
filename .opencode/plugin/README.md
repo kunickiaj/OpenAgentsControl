@@ -1,6 +1,42 @@
-# Agent Validator Plugin
+# OpenCode Plugins
 
-Validates that OpenAgent follows its defined prompt rules and execution patterns.
+This directory contains local OpenCode plugins. The lint-feedback plugin is a pilot that adds no-regression Biome feedback after source edits; the existing agent validator tracks agent workflow behavior.
+
+## Lint-feedback pilot
+
+The pilot is inert unless a trusted wrapper passes an explicit command array. For example, manage this wrapper in your user-level OpenCode plugin directory and load it as a normal string plugin entry:
+
+```json
+{
+  "plugin": ["file:///absolute/path/to/lint-feedback-wrapper.ts"]
+}
+```
+
+```ts
+import { LintFeedbackPlugin } from "/absolute/path/to/lint-feedback-core"
+
+export default ((input) => LintFeedbackPlugin(input, {
+  command: ["pnpm", "exec", "biome", "lint", "--reporter=json"],
+  timeoutMs: 10000,
+})) satisfies typeof LintFeedbackPlugin
+```
+
+Keep the wrapper in trusted user configuration rather than accepting an executable command from each worktree. The imported checkout must have the plugin dependencies installed.
+
+The plugin appends `--` and the touched worktree-relative file to the command, then starts it without a shell in the worktree. It never discovers or invokes repository scripts.
+
+Paired `tool.execute.before` and `tool.execute.after` hooks cover `edit`, `write`, and `apply_patch`, including destinations moved from non-source paths. They compare diagnostics by category, report only new or worsened findings, and cap feedback at 10 diagnostics. Complexity and function-length rules match nearest locations before comparing measured values; count-only rules match description, source text when available, and nearest location.
+
+Limits:
+- Only JavaScript and TypeScript source extensions are checked.
+- Invalid paths, paths outside the worktree, non-source files, and deleted files are ignored.
+- Spawn, timeout, and JSON parse failures preserve the edit and add one short warning per session. Timeouts reject immediately, then terminate the process group on POSIX or use Windows `taskkill /T /F` when available.
+- Identical count-only source expressions and large location shifts can still make matching ambiguous.
+- Claude hooks are deferred until the OpenCode pilot is measured.
+
+Restart OpenCode after installing or changing the plugin because plugins load at startup.
+
+## Agent validator
 
 ## Features
 

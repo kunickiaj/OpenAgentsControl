@@ -726,6 +726,24 @@
     ],
     "plugins": [
       {
+        "id": "lint-feedback",
+        "name": "Lint Feedback",
+        "type": "plugin",
+        "path": ".opencode/plugin/lint-feedback.ts",
+        "description": "Reports new or worsened lint diagnostics after source edits",
+        "tags": [
+          "lint",
+          "feedback",
+          "code-quality"
+        ],
+        "dependencies": [],
+        "category": "specialized",
+        "files": [
+          ".opencode/plugin/lint-feedback.ts",
+          ".opencode/plugin/lib/lint-feedback-core.ts"
+        ]
+      },
+      {
         "id": "notify",
         "name": "Generic Notifier",
         "type": "plugin",
