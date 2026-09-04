@@ -119,6 +119,7 @@
           "subagent:contextscout",
           "subagent:externalscout",
           "context:standards-code",
+          "context:standards-code-shape",
           "context:task-delegation-basics",
           "context:component-planning",
           "context:external-libraries-workflow"
@@ -142,6 +143,7 @@
           "subagent:contextscout",
           "subagent:externalscout",
           "context:standards-code",
+          "context:standards-code-shape",
           "context:standards-docs",
           "context:standards-tests",
           "context:review-ref",
@@ -193,7 +195,11 @@
           "security",
           "quality"
         ],
-        "dependencies": [],
+        "dependencies": [
+          "context:standards-code",
+          "context:standards-code-shape",
+          "context:review-ref"
+        ],
         "category": "standard"
       },
       {
@@ -250,7 +256,10 @@
           "implementation",
           "execution"
         ],
-        "dependencies": [],
+        "dependencies": [
+          "context:standards-code",
+          "context:standards-code-shape"
+        ],
         "category": "standard"
       },
       {
@@ -875,6 +884,23 @@
           "standards",
           "code",
           "quality"
+        ],
+        "dependencies": [
+          "context:standards-code-shape"
+        ],
+        "category": "standard"
+      },
+      {
+        "id": "standards-code-shape",
+        "name": "Code Shape Standards",
+        "type": "context",
+        "path": ".opencode/context/core/standards/code-shape.md",
+        "description": "Concrete bad and good patterns for clear code shape",
+        "tags": [
+          "standards",
+          "code",
+          "quality",
+          "complexity"
         ],
         "dependencies": [],
         "category": "standard"

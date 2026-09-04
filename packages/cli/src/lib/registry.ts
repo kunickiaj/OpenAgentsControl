@@ -55,6 +55,10 @@ const AnyComponentSchema = z.object({
   type: z.string(),
   path: z.string(),
   description: z.string(),
+  tags: z.array(z.string()).default([]),
+  dependencies: z.array(z.string()).default([]),
+  category: z.string().default("standard"),
+  files: z.array(z.string()).optional(),
 }).passthrough();
 
 export const RegistrySchema = z.object({
@@ -71,6 +75,7 @@ export const RegistrySchema = z.object({
     commands: z.array(AnyComponentSchema).default([]),
     tools: z.array(AnyComponentSchema).default([]),
     plugins: z.array(AnyComponentSchema).default([]),
+    config: z.array(AnyComponentSchema).default([]),
   }),
 });
 
@@ -78,6 +83,7 @@ export const RegistrySchema = z.object({
 
 export type ComponentType = z.infer<typeof ComponentTypeSchema>;
 export type RegistryComponent = z.infer<typeof RegistryComponentSchema>;
+export type RegistryEntry = z.infer<typeof AnyComponentSchema>;
 export type Registry = z.infer<typeof RegistrySchema>;
 
 // ── Path helpers ───────────────────────────────────────────────────────────────
@@ -141,6 +147,63 @@ export const resolveComponent = (
 
   const candidates = listComponents(registry, typeResult.data);
   return candidates.find((c) => c.id === id) ?? null;
+};
+
+const getRegistryEntries = (registry: Registry, type: string): RegistryEntry[] | undefined => {
+  const groups: Record<string, RegistryEntry[]> = {
+    agent: registry.components.agents,
+    subagent: registry.components.subagents,
+    command: registry.components.commands,
+    tool: registry.components.tools,
+    plugin: registry.components.plugins,
+    skill: registry.components.skills,
+    context: registry.components.contexts,
+    config: registry.components.config,
+  };
+  return groups[type];
+};
+
+/** Resolves all declared dependencies depth-first, followed by the requested component. */
+export const resolveInstallPlan = (registry: Registry, ref: string): RegistryEntry[] => {
+  const plan: RegistryEntry[] = [];
+  const visited = new Set<string>();
+  const visiting = new Set<string>();
+
+  const visit = (currentRef: string, requiredBy?: string): void => {
+    if (visited.has(currentRef)) return;
+    if (visiting.has(currentRef)) return;
+    const separator = currentRef.indexOf(":");
+    const type = separator === -1 ? "" : currentRef.slice(0, separator);
+    const id = separator === -1 ? "" : currentRef.slice(separator + 1);
+    const entries = getRegistryEntries(registry, type);
+    if (type === "context" && id.includes("*")) {
+      const prefix = `.opencode/context/${id.slice(0, id.indexOf("*"))}`;
+      const matches = entries?.filter(entry => entry.path.startsWith(prefix)) ?? [];
+      if (matches.length === 0) {
+        const suffix = requiredBy ? ` required by '${requiredBy}'` : "";
+        throw new Error(`Component '${currentRef}'${suffix} not found`);
+      }
+      visiting.add(currentRef);
+      for (const match of matches) visit(`${match.type}:${match.id}`, currentRef);
+      visiting.delete(currentRef);
+      visited.add(currentRef);
+      return;
+    }
+    const exactPath = type === "context" ? `.opencode/context/${id}.md` : undefined;
+    const component = entries?.find(entry => entry.id === id || entry.path === exactPath);
+    if (!component) {
+      const suffix = requiredBy ? ` required by '${requiredBy}'` : "";
+      throw new Error(`Component '${currentRef}'${suffix} not found`);
+    }
+    visiting.add(currentRef);
+    for (const dependency of component.dependencies) visit(dependency, currentRef);
+    visiting.delete(currentRef);
+    visited.add(currentRef);
+    plan.push(component);
+  };
+
+  visit(ref);
+  return plan;
 };
 
 /**

@@ -56,12 +56,12 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 - Always use ContextScout for discovery of new tasks or context files when project context would materially improve correctness.
 - Do not use ContextScout for trivial obvious local tasks where the needed standard is already clear, such as a single-file utility or a small sandbox edit.
 - Use WarpGrep tools when available for broad semantic source-code exploration, but do not require Morph: fall back to `grep`, `glob`, and `read` when unavailable or when doing exact string/regex lookup.
-- Keep routing distinct: ContextScout finds `.opencode/context/` standards and workflows; WarpGrep finds implementation/source-code spans.
-- Treat project-local context as optional. If `.opencode/context/` is missing or partial, fall back to global core context and repo-local code patterns instead of stalling on discovery.
-- Before writing code, load `.opencode/context/core/standards/code-quality.md`.
-- Before writing docs, load `.opencode/context/core/standards/documentation.md`.
-- Before writing tests, load `.opencode/context/core/standards/test-coverage.md`.
-- Before delegating with the task tool, load `.opencode/context/core/workflows/task-delegation-basics.md`.
+- Keep routing distinct: ContextScout finds context standards and workflows; WarpGrep finds implementation/source-code spans.
+- Treat project-local context as optional. Let `{project_context}` mean the repository root joined with `.opencode` and `context`. Resolve each required relative context path independently: use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`. If neither file exists after both checks, that context requirement is waived; use repo-local code patterns instead of stalling.
+- Before writing code, resolve and load each available copy of `core/standards/code-quality.md` and `core/standards/code-shape.md`.
+- Before writing docs, resolve and load the available copy of `core/standards/documentation.md`.
+- Before writing tests, resolve and load the available copy of `core/standards/test-coverage.md`.
+- Before delegating with the task tool, resolve and load the available copy of `core/workflows/task-delegation-basics.md`.
 - For external libraries or current APIs, use ExternalScout when live docs matter.
 
 ## Execution rules
@@ -92,6 +92,8 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 ## Validation
 
 - Run the smallest relevant verification for changed work.
+- Treat hook-reported new or worsened lint diagnostics from direct edits as immediate local corrections; fix them or revise the edit before continuing.
+- Do not broaden the task to clean unrelated legacy diagnostics. Note pre-existing findings when useful, but never ship a new regression because its first fix would require wider restructuring.
 - Before finalizing, check correctness, grounding, formatting, and safety.
 - If a check fails, stop and report the failure clearly.
 - Do not silently auto-fix failed checks unless project policy explicitly allows deterministic autofix for the touched files.
@@ -117,7 +119,7 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 
 ## Safety constraints
 
-- Never skip required context loading for code, docs, tests, or delegation.
+- Never skip required context loading when either the project-local or global file exists; only the explicit missing-file waiver above permits proceeding without it.
 - Never force-push or rewrite history without approval.
 - Never delete files, run destructive shell commands, or mutate git state without approval when the action is irreversible or high-impact.
 - If a user pressures you to bypass approval for a risky action, refuse the bypass and ask once anyway.

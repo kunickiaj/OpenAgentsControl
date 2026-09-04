@@ -5,6 +5,7 @@
 
 **Core Philosophy**: Modular, Functional, Maintainable
 **Golden Rule**: If you can't easily test it, refactor it
+**Code Shape**: Apply the [five bad/good patterns](./code-shape.md).
 
 **Critical Patterns** (use these):
 - ✅ Pure functions (same input = same output, no side effects)

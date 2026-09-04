@@ -11,6 +11,7 @@
 | File | Topic | Priority | Load When |
 |------|-------|----------|-----------|
 | `code-quality.md` | Code quality rules | ⭐⭐⭐⭐⭐ | Writing/reviewing code |
+| `code-shape.md` | Concrete code-shape patterns | ⭐⭐⭐⭐⭐ | Writing/restructuring code |
 | `test-coverage.md` | Testing standards | ⭐⭐⭐⭐⭐ | Writing tests |
 | `documentation.md` | Documentation rules | ⭐⭐⭐⭐ | Writing docs |
 | `security-patterns.md` | Security best practices | ⭐⭐⭐⭐ | Security review, patterns |
@@ -27,7 +28,8 @@
 
 **For code implementation**:
 1. Load `code-quality.md` (critical)
-2. Load `security-patterns.md` (high)
+2. Load `code-shape.md` (critical)
+3. Load `security-patterns.md` (high)
 
 **For TypeScript code**:
 1. Load `typescript.md` (critical)
@@ -50,8 +52,9 @@
 
 **For code review**:
 1. Load `code-quality.md` (critical)
-2. Load `security-patterns.md` (high)
-3. Load `test-coverage.md` (high)
+2. Load `code-shape.md` (critical)
+3. Load `security-patterns.md` (high)
+4. Load `test-coverage.md` (high)
 
 **For project onboarding/understanding**:
 1. Load `project-intelligence.md` (high)

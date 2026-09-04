@@ -26,7 +26,7 @@
 
 | Task | Path |
 |------|------|
-| **Write code** | `core/standards/code-quality.md` |
+| **Write code** | `core/standards/code-quality.md` + `core/standards/code-shape.md` |
 | **Write tests** | `core/standards/test-coverage.md` |
 | **Write docs** | `core/standards/documentation.md` |
 | **Review code** | `core/workflows/code-review.md` |

@@ -13,6 +13,7 @@
   "files": [
     ".opencode/agent/",
     ".opencode/command/",
+    ".opencode/config/",
     ".opencode/context/",
     ".opencode/plugin/",
     ".opencode/profiles/",

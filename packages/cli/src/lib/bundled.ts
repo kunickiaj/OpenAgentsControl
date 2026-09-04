@@ -12,8 +12,12 @@ export type BundledFileType = "agent" | "context" | "skill" | "config";
 /** Subdirectories under the package root that contain bundled OAC files. */
 const BUNDLED_SUBDIRS = [
   ".opencode/agent",
+  ".opencode/command",
+  ".opencode/config",
   ".opencode/context",
+  ".opencode/plugin",
   ".opencode/skills",
+  ".opencode/tool",
 ] as const;
 
 // --- Package root resolution ---
@@ -103,6 +107,9 @@ async function collectFiles(dir: string): Promise<string[]> {
 
   const nested = await Promise.all(
     entries.map((entry) => {
+      if (entry.name === "node_modules" || entry.name === ".git" || entry.isSymbolicLink()) {
+        return Promise.resolve([]);
+      }
       const fullPath = join(dir, entry.name);
       return entry.isDirectory() ? collectFiles(fullPath) : Promise.resolve([fullPath]);
     }),
@@ -112,8 +119,7 @@ async function collectFiles(dir: string): Promise<string[]> {
 }
 
 /**
- * Lists all files under `.opencode/agent/`, `.opencode/context/`, and
- * `.opencode/skills/` within the given package root.
+ * Lists all managed files under the bundled `.opencode/` component directories.
  *
  * Returns relative paths like `.opencode/agent/core/openagent.md`.
  * Subdirectories that do not exist are silently skipped.

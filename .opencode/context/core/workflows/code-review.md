@@ -111,8 +111,7 @@
 🔴 Exposed sensitive data
 
 ### Code Quality
-🟡 Large functions (>50 lines)
-🟡 Deep nesting (>3 levels)
+🟡 Large functions or deep nesting when the project linter does not enforce them
 🟡 Code duplication
 🟡 Unclear naming
 
