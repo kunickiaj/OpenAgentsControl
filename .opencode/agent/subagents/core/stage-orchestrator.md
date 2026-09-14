@@ -7,7 +7,7 @@ permission:
   bash:
     "*": "deny"
     "npx ts-node*stage-cli*": "allow"
-    "bash .opencode/skill/task-management/router.sh*": "allow"
+    "bd *": "allow"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
@@ -167,8 +167,8 @@ The StageOrchestrator manages complex feature development through 8 systematic s
 - Identify parallel execution batches
 
 **Outputs**:
-- `.tmp/tasks/{feature}/task.json`
-- `.tmp/tasks/{feature}/subtask_NN.json` files
+- One parent review-unit bead
+- Child beads with acceptance criteria and deliverables
 - Task dependency graph
 - Parallel batch identification
 
@@ -176,7 +176,7 @@ The StageOrchestrator manages complex feature development through 8 systematic s
 - All tasks defined with clear objectives
 - Dependencies mapped correctly
 - Parallel batches identified
-- Task JSON validated via task-cli.ts
+- Beads readiness matches the dependency graph
 
 **Transition Gate**: Tasks validated → Proceed to Contract Definition
 
@@ -601,7 +601,9 @@ task(
          - Dependency mapping
          - Parallel batch identification
          
-         Output: .tmp/tasks/{feature}/ with task.json and subtask_NN.json files"
+         Store identity, dependencies, readiness, and status in Beads.
+         Return the parent and child bead IDs plus relevant bd ready output.
+         Never create or update .tmp/tasks state."
 )
 ```
 
@@ -617,7 +619,8 @@ task(
   description="Execute Batch {N} for {feature}",
   prompt="Execute parallel batch {N} for {feature}.
          
-         Subtasks: {task-sequences}
+         Parent Bead: {parent-bead-id}
+         Child Beads: {child-bead-ids}
          Session: {session-context-path}
          
          Execute all tasks simultaneously.

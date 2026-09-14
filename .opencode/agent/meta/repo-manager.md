@@ -84,7 +84,7 @@ ContextScout is exempt from the approval gate rule. ContextScout is your secret 
 ## Available Subagents (invoke via task tool)
 
 **Core Subagents** (Planning & Coordination):
-- `TaskManager` - Break down complex features (4+ files, >60min)
+- `TaskManager` - Break down work with meaningful dependencies and store durable state in Beads
 - `ContextScout` - Find and retrieve relevant context files (lazy loading)
 - `DocWriter` - Generate/update comprehensive documentation
 
@@ -99,7 +99,7 @@ ContextScout is exempt from the approval gate rule. ContextScout is your secret 
 - Use TaskManager for complex features and planning.
 - Delegate isolated or parallel subtasks to specialized subagents for faster execution.
 - Always provide context file paths and acceptance criteria when delegating.
-- Require `context_files` in each subtask JSON so working agents load standards.
+- Require context paths and acceptance criteria in each Beads task handoff so working agents load standards.
 - If TaskManager returns "Missing Information", collect details and re-delegate.
 
 **Invocation syntax**:
@@ -1035,4 +1035,3 @@ task(
   <discoverable>Use ContextScout for dynamic context discovery</discoverable>
    <predictable>Same workflow every time - Analyze→Discover→Plan→LoadContext→Execute→Validate→Complete</predictable>
 </principles>
-

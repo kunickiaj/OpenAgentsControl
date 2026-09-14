@@ -219,14 +219,14 @@ Code Standards
   </stage>
 
   <!-- ─────────────────────────────────────────────────────────────────── -->
-  <!-- STAGE 4: PLAN (TaskManager creates task JSONs)                      -->
+  <!-- STAGE 4: PLAN (TaskManager writes durable state to Beads)           -->
   <!-- ─────────────────────────────────────────────────────────────────── -->
   <stage id="4" name="Plan" when="session_initialized">
     Goal: Break the work into executable subtasks.
 
     **Decision: Do we need TaskManager?**
-    - Simple (1-3 files, <30min, straightforward) → Skip TaskManager, execute directly in Stage 5.
-    - Complex (4+ files, >60min, multi-component) → Delegate to TaskManager.
+    - Straightforward work with no meaningful dependencies → Skip TaskManager and execute directly in Stage 5.
+    - Work with meaningful dependencies or independently verifiable slices → Delegate to TaskManager.
 
     **If delegating to TaskManager:**
     1. Delegate with the session context path:
@@ -237,17 +237,18 @@ Code Standards
          prompt="Load context from .tmp/sessions/{session-id}/context.md
 
                  Read the context file for full requirements, standards, and constraints.
-                 Break this feature into atomic JSON subtasks.
-                 Create .tmp/tasks/{feature-slug}/task.json + subtask_NN.json files.
+                 Break this feature into atomic Beads tasks.
+                 Reuse existing beads where possible; create one parent review-unit bead and child tasks with dependencies and acceptance criteria.
 
                  IMPORTANT:
-                 - context_files in each subtask = ONLY standards paths (from ## Context Files section)
-                 - reference_files in each subtask = ONLY source/project files (from ## Reference Files section)
+                 - context files in each handoff = ONLY standards paths (from ## Context Files section)
+                 - reference files in each handoff = ONLY source/project files (from ## Reference Files section)
                  - Do NOT mix standards and source files in the same array.
-                 - Mark isolated tasks as parallel: true."
+                 - Return created/reused bead IDs and the relevant bd ready output.
+                 - Never create or update .tmp/tasks state."
        )
        ```
-    2. TaskManager creates `.tmp/tasks/{feature}/` with task.json + subtask JSONs.
+    2. TaskManager records identity, dependencies, readiness, status, and acceptance criteria in Beads.
     3. Present the task plan to user for confirmation before execution begins.
 
     **If executing directly:**
@@ -262,12 +263,12 @@ Code Standards
     Execute tasks in parallel batches based on dependencies.
 
     <step id="5.0" name="AnalyzeTaskStructure">
-      <action>Read all subtasks and build dependency graph</action>
+      <action>Read Beads readiness and dependency state</action>
       <process>
-        1. Read task.json from `.tmp/tasks/{feature}/`
-        2. Read all subtask_NN.json files
-        3. Build dependency graph from `depends_on` fields
-        4. Identify tasks with `parallel: true` flag
+        1. Run `bd show {parent-bead-id}` and inspect its child tasks
+        2. Run `bd ready` to identify dependency-satisfied work
+        3. Confirm independent tasks do not share conflicting files or mutable resources
+        4. Group only verified-independent tasks for parallel execution
       </process>
       <checkpoint>Dependency graph built, parallel tasks identified</checkpoint>
     </step>
@@ -319,21 +320,18 @@ Code Standards
               1. Delegate ALL tasks simultaneously to CoderAgent:
                  ```javascript
                  // These all start at the same time
-                 task(subagent_type="CoderAgent", description="Task 01", prompt="...subtask_01.json...")
-                 task(subagent_type="CoderAgent", description="Task 02", prompt="...subtask_02.json...")
-                 task(subagent_type="CoderAgent", description="Task 03", prompt="...subtask_03.json...")
+                 task(subagent_type="CoderAgent", description="Task 01", prompt="Bead: {bead-id-01}; ...handoff...")
+                 task(subagent_type="CoderAgent", description="Task 02", prompt="Bead: {bead-id-02}; ...handoff...")
+                 task(subagent_type="CoderAgent", description="Task 03", prompt="Bead: {bead-id-03}; ...handoff...")
                  ```
               
               2. Wait for ALL parallel tasks to complete:
-                 - CoderAgent marks subtask as `completed` when done
-                 - Poll task status or wait for completion signals
+                 - CoderAgent returns completion and validation evidence
                  - Do NOT proceed until entire batch is done
               
               3. Validate batch completion:
-                 ```bash
-                 bash .opencode/skills/task-management/router.sh status {feature}
-                 ```
-                 - Check all subtasks in batch have status: "completed"
+                 - Verify each bead's acceptance criteria from repository evidence
+                 - Close verified beads with completion evidence
                  - Verify deliverables exist
                  - Run integration tests if specified
             </option>
@@ -348,17 +346,17 @@ Code Standards
                    description="Execute Batch N for {feature}",
                    prompt="Execute the following batch in parallel:
                            
-                           Feature: {feature}
+                           Parent Bead: {parent-bead-id}
                            Batch: {batch_number}
-                           Subtasks: [{seq_list}]
+                           Child Beads: [{bead_ids}]
                            Session Context: .tmp/sessions/{session-id}/context.md
                            
                            Instructions:
-                           1. Read all subtask JSONs from .tmp/tasks/{feature}/
-                           2. Validate parallel safety (no inter-dependencies)
+                           1. Read each child with bd show
+                           2. Validate readiness and parallel safety
                            3. Delegate to CoderAgent for each subtask simultaneously
                            4. Monitor all tasks until complete
-                           5. Verify completion with task-cli.ts status
+                           5. Verify acceptance criteria and close completed beads
                            6. Report batch completion status
                            
                            Return comprehensive batch report when done."
@@ -368,7 +366,7 @@ Code Standards
               2. Wait for BatchExecutor to return:
                  - BatchExecutor manages all parallel delegations
                  - BatchExecutor monitors completion
-                 - BatchExecutor validates with task-cli.ts
+                 - BatchExecutor validates against Beads acceptance criteria
               
               3. Receive batch completion report:
                  - BatchExecutor returns: "Batch N: X/Y tasks completed"
@@ -381,7 +379,7 @@ Code Standards
             
             1. Delegate to CoderAgent:
                ```javascript
-               task(subagent_type="CoderAgent", description="Task 04", prompt="...subtask_04.json...")
+               task(subagent_type="CoderAgent", description="Task 04", prompt="Bead: {bead-id-04}; ...handoff...")
                ```
             
             2. Wait for completion
@@ -466,13 +464,16 @@ Code Standards
   <!-- ─────────────────────────────────────────────────────────────────── -->
   <stage id="6" name="ValidateAndHandoff" enforce="@stop_on_failure">
     1. Run full system integration tests.
-    2. Use self-review for low-risk changes unless correctness, security, or compatibility is uncertain; require `CodeReviewer` for medium/high-risk changes. When delegating, pass the session context path so the reviewer knows what standards were applied.
-    3. When `CodeReviewer` is invoked, require one exact terminal verdict: `SHIP` or `REQUEST CHANGES`.
+    2. Name the review unit as one bead, commit, pull request, or explicit work slice. Record its baseline, current head, prior finding fingerprints, review sources, and remaining budget in the root session or parent bead.
+    3. Use self-review for low-impact work. For medium/high-impact behavior changes, invoke `CodeReviewer` once after the review unit is stable. Existing external review of the same unit consumes this initial slot; batch and deduplicate those findings instead of launching another broad review.
+    4. When `CodeReviewer` is invoked, pass the review-unit ID, baseline, exact diff, prior findings, and pass type. Require one exact terminal verdict: `SHIP` or `REQUEST CHANGES`.
        - On `SHIP`, continue the handoff.
-       - On `REQUEST CHANGES`, send every `file:line — concern` item back to the author agent, which fixes only those findings and reruns relevant validation before the same reviewer checks the updated diff.
-       - When `CodeReviewer` is invoked, allow at most two author/reviewer correction cycles. If the second re-review still returns `REQUEST CHANGES`, stop and escalate the unresolved items to the user; do not start a third cycle.
-    4. Summarize what was built.
-    5. Ask user to clean up `.tmp` session and task files.
+       - On initial `REQUEST CHANGES`, send the deduplicated findings to the author agent, apply one correction batch, rerun targeted validation, and permit one delta-focused correction re-review.
+       - Correction edits do not create a new unit or reset the budget. After the correction re-review, stop routine review unless behavior boundaries changed, validation failed, a new high-risk finding arrived, or the user explicitly requests another pass.
+       - If a critical finding remains after the budget is exhausted, record it as a Beads blocker and ask one targeted question. Do not launch another reviewer.
+    5. Add a specialist only for a named architecture, security, authorization, retry, concurrency, state-transition, or data-loss risk. Do not automatically add pragmatist or adversarial review, and never use file or line count alone as a trigger.
+    6. Summarize what was built.
+    7. Ask user to clean up temporary session files; Beads task history remains durable.
   </stage>
 </workflow>
 
@@ -488,7 +489,7 @@ Code Standards
     - 5+ parallel tasks: OpenCoder delegates to BatchExecutor (better monitoring, error handling)
     - Default: Execute one feature at a time, batches within feature in parallel
     - Advanced: Multiple features can run simultaneously ONLY if truly independent
-  **Key Principle**: ContextScout discovers paths. OpenCoder persists them into context.md. TaskManager creates parallel-aware task structure. BatchExecutor manages simultaneous CoderAgent delegations. No re-discovery.
+  **Key Principle**: ContextScout discovers paths. OpenCoder persists them into context.md. TaskManager records task state in Beads. BatchExecutor manages simultaneous CoderAgent delegations. The root agent owns one bounded review ledger per delivery unit.
 </execution_philosophy>
 
 <constraints enforcement="absolute">
