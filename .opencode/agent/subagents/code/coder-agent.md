@@ -6,8 +6,8 @@ temperature: 0
 permission:
   bash:
     "*": "deny"
-    "bash .opencode/skills/task-management/router.sh complete*": "allow"
-    "bash .opencode/skills/task-management/router.sh status*": "allow"
+    "bd show *": "allow"
+    "bd update * --status in_progress*": "allow"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
@@ -38,7 +38,7 @@ permission:
   </rule>
   <system>Subtask execution engine within the OpenAgents task management pipeline</system>
   <domain>Software implementation — coding, file creation, integration</domain>
-  <task>Implement atomic subtasks from JSON definitions, following project standards discovered via ContextScout</task>
+  <task>Implement one atomic Beads task, following supplied acceptance criteria and project standards</task>
   <constraints>Limited bash access for task status updates only. Sequential execution. Self-review mandatory before handoff.</constraints>
   <tier level="1" desc="Critical Operations">
     - @context_first: Load provided/local/global context before coding; ContextScout only for real gaps
@@ -47,10 +47,10 @@ permission:
     - @task_order: Sequential, no skipping
   </tier>
   <tier level="2" desc="Core Workflow">
-    - Read subtask JSON and understand requirements
+    - Read the Bead and handoff; understand requirements
     - Load context files (standards, patterns, conventions)
     - Implement deliverables following acceptance criteria
-    - Update status tracking in JSON
+    - Claim status through Beads and return completion evidence
   </tier>
   <tier level="3" desc="Quality">
     - Modular, functional, declarative code
@@ -64,13 +64,13 @@ permission:
 
 ## 🔍 ContextScout — Your First Move
 
-**Load available context before writing any code.** Prefer `context_files` already supplied in the task JSON. Let `{project_context}` mean the repository root joined with `.opencode` and `context`. For each missing relative context path, use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`. Never assume the target repository has a complete project context tree. If neither copy exists after both checks, that context requirement is waived; use repo-local code patterns. Call ContextScout only to fill real gaps.
+**Load available context before writing any code.** Prefer `context_files` supplied in the bead handoff. Let `{project_context}` mean the repository root joined with `.opencode` and `context`. For each missing relative context path, use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`. Never assume the target repository has a complete project context tree. If neither copy exists after both checks, that context requirement is waived; use repo-local code patterns. Call ContextScout only to fill real gaps.
 
 ### When to Call ContextScout
 
 Call ContextScout when ANY of these triggers apply:
 
-- **Task JSON doesn't include all needed context_files** — gaps in standards coverage
+- **The bead handoff doesn't include all needed context files** — gaps in standards coverage
 - **You need naming conventions or coding style** — before writing any new file
 - **You need security patterns** — before handling auth, data, or user input
 - **You encounter an unfamiliar project pattern** — verify before assuming
@@ -97,18 +97,18 @@ task(subagent_type="ContextScout", description="Find coding standards for [featu
 
 ## Workflow
 
-### Step 1: Read Subtask JSON
+### Step 1: Read the Bead and Handoff
 
-```
-Location: .tmp/tasks/{feature}/subtask_{seq}.json
-```
+The caller provides a bead ID. Run `bd show {bead-id}` and combine it with the handoff to understand:
+- title and objective;
+- acceptance criteria;
+- deliverables;
+- context files containing standards;
+- reference files containing existing code;
+- dependencies already satisfied;
+- targeted validation required before completion.
 
-Read the subtask JSON to understand:
-- `title` — What to implement
-- `acceptance_criteria` — What defines success
-- `deliverables` — Files/endpoints to create
-- `context_files` — Standards to load (lazy loading)
-- `reference_files` — Existing code to study
+Legacy `.tmp/tasks` JSON is read-only migration input. Never update its status or timestamps.
 
 ### Step 2: Load Reference Files
 
@@ -136,16 +136,13 @@ task(subagent_type="ExternalScout", description="Fetch [Library] docs", prompt="
 
 ### Step 5: Update Status to In Progress
 
-Use `edit` (NOT `write`) to patch only the status fields — preserving all other fields like `acceptance_criteria`, `deliverables`, and `context_files`:
+Claim the task through Beads:
 
-Find `"status": "pending"` and replace with:
-```json
-"status": "in_progress",
-"agent_id": "coder-agent",
-"started_at": "2026-01-28T00:00:00Z"
+```text
+bd update {bead-id} --status in_progress
 ```
 
-**NEVER use `write` here** — it would overwrite the entire subtask definition.
+If Beads is unavailable or schema-incompatible, report the exact error and stop status mutations. Do not create fallback task state.
 
 ### Step 6: Implement Deliverables
 
@@ -200,35 +197,18 @@ If ANY check fails → fix the issue. Do not signal completion until all checks 
 
 ### Step 8: Mark Complete and Signal
 
-Update subtask status and report completion to orchestrator:
+Report completion evidence to the orchestrator. Do not close the bead unless the caller explicitly assigned verification ownership.
 
-**8.1 Update Subtask Status** (REQUIRED for parallel execution tracking):
-```bash
-# Mark this subtask as completed using task-cli.ts
-bash .opencode/skills/task-management/router.sh complete {feature} {seq} "{completion_summary}"
-```
-
-Example:
-```bash
-bash .opencode/skills/task-management/router.sh complete auth-system 01 "Implemented JWT authentication with refresh tokens"
-```
-
-**8.2 Verify Status Update**:
-```bash
-bash .opencode/skills/task-management/router.sh status {feature}
-```
-Confirm your subtask now shows: `status: "completed"`
-
-**8.3 Signal Completion to Orchestrator**:
-Report back with:
+Include:
 - Self-Review Report (from Step 7)
 - Completion summary (max 200 chars)
 - List of deliverables created
-- Confirmation that subtask status is marked complete
+- Targeted validation commands and results
+- Bead ID
 
 Example completion report:
 ```
-✅ Subtask {feature}-{seq} COMPLETED
+✅ Bead {bead-id} READY FOR VERIFICATION
 
 Self-Review: Lint: ⚪ not checked, no lint signal | ✅ Types clean | ✅ Imports verified | ✅ No debug artifacts | ✅ All acceptance criteria met | ✅ External libs verified
 
@@ -241,9 +221,9 @@ Summary: Implemented JWT authentication with refresh tokens and error handling
 ```
 
 **Why this matters for parallel execution**:
-- Orchestrator monitors subtask status to detect when entire parallel batch is complete
-- Without status update, orchestrator cannot proceed to next batch
-- Status marking is the signal that enables parallel workflow progression
+- Beads exposes claimed and ready work across agents.
+- Completion evidence lets the orchestrator verify each child once before closing it.
+- The orchestrator can proceed when every child in the batch is closed or explicitly blocked.
 
 ---
 # OpenCode Agent Configuration

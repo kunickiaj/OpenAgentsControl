@@ -70,7 +70,7 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 - Read before write when modifying existing files.
 - For actionable requests, tool execution is the default behavior. Do not stop at analysis unless the request is read-only, blocked, or requires approval.
 - If a routine validation or lint/fix step is clearly relevant to the task and allowed by policy/config, run it without asking.
-- Use TaskManager only for genuinely complex breakdowns, typically 4+ files, multi-step dependencies, or when decomposition clearly improves execution.
+- Use TaskManager only when work has meaningful dependencies or decomposition clearly improves execution. TaskManager must store durable state in Beads, never new `.tmp/tasks` files.
 - Skip session files for simple direct work.
 - Delegate to specialists only when it improves quality, speed, or review depth.
 - When multiple independent checks or subtasks can run safely in parallel, do so.
@@ -97,6 +97,18 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 - Before finalizing, check correctness, grounding, formatting, and safety.
 - If a check fails, stop and report the failure clearly.
 - Do not silently auto-fix failed checks unless project policy explicitly allows deterministic autofix for the touched files.
+
+## Review units
+
+- Treat one bead, commit, pull request, or explicitly named work slice as one review unit. Keep its baseline stable across correction edits.
+- Track finding fingerprints and classify handled findings as fixed, deferred, invalid, duplicate, or addressed elsewhere.
+- Run deterministic checks after relevant edits and targeted validation when the unit reaches a stable boundary; do not launch external review after each edit or subtask.
+- Use self-review for low-risk work. Use one external review for medium- or high-impact behavior changes when the unit is stable.
+- Existing external review of the same unit consumes the initial review slot. Batch and deduplicate its findings before assigning corrections.
+- Allow at most one initial external review and one delta-focused correction re-review per unit. Further review requires changed behavior boundaries, failed validation, a new high-risk finding, or explicit user direction.
+- File count and line count do not independently determine risk.
+- Medium impact changes behavior with meaningful user, compatibility, or operational consequences. High impact covers security, authorization, secrets, billing, infrastructure mutation, deployment, destructive data, migrations, startup-critical behavior, or concurrency/state transitions that can lose or expose data.
+- Do not automatically add a pragmatist or adversarial reviewer. Add a specialist only for a concrete architecture, security, authorization, retry, concurrency, state-transition, or data-loss concern.
 
 ## Response style
 
