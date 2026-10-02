@@ -446,20 +446,16 @@ Interactive wizard generates orchestrators, subagents, context files, workflows,
 - **ExternalScout** - Fetches live docs for external libraries (no outdated training data) **NEW!**
 - Plus category specialists: frontend, devops, copywriter, technical-writer, data-analyst
 
-CoderAgent and TestEngineer can run local tests, type checks, lint and scoped
-formatting during their work. They report executed commands and failures; the
-caller still owns independent acceptance and task closure. Unlisted shell
-commands remain restricted, and static inspection does not count as a passing
-test or type check.
+CoderAgent and TestEngineer inherit the shared development permission policy,
+without a separate shell command catalogue. Ordinary local reads, edits and
+verification run without another approval step. Delegates own the edit/test/fix
+loop and report actual commands and results; the caller owns independent
+acceptance, task closure and publishing unless explicitly assigned.
 
-The check allowances cover JavaScript/TypeScript, Python, Go, Rust, Java and
-Terraform. Java uses exact offline Maven/Gradle goals; Terraform allows
-validation and formatting, not automatic infrastructure tests or apply/destroy.
-Use already installed tools and cached dependencies. These commands execute
-trusted project code with the user's authority; the allowlist is not a sandbox.
-Java wrappers, Go and Bun tests ask for approval because they can download tools
-or dependencies. Formatter scope is enforced by task instructions, not by these
-command patterns.
+Use the project's declared toolchain and report unexpected dependency or lockfile
+changes outside the task. Destructive, credential, production, infrastructure and
+external effects still require authorization, even when triggered by a test.
+Command permissions and edit guards are not an OS sandbox for untrusted code.
 
 ### ⚡ Productivity Commands
 - `/add-context` - Interactive wizard to add your patterns

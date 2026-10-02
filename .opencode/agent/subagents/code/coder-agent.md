@@ -4,95 +4,6 @@ description: Executes coding subtasks in sequence, ensuring completion as specif
 mode: subagent
 temperature: 0
 permission:
-  bash:
-    "*": "deny"
-    "bd show *": "allow"
-    "bd update * --status in_progress*": "allow"
-    "git status *": "allow"
-    "git diff --no-ext-diff --no-textconv *": "allow"
-    "git show --no-ext-diff --no-textconv *": "allow"
-    "git log --no-ext-diff --no-textconv *": "allow"
-    "git rev-parse *": "allow"
-    "git ls-files *": "allow"
-    "git diff *--output*": "deny"
-    "git show *--output*": "deny"
-    "git log *--output*": "deny"
-    "git *--ext-diff*": "deny"
-    "git *--textconv*": "deny"
-    "node --test *": "allow"
-    "node --test *--import*": "deny"
-    "node --test *--require*": "deny"
-    "node --test -r*": "deny"
-    "node --test * -r*": "deny"
-    "node --test *-r *": "deny"
-    "node --test *--loader*": "deny"
-    "node --test *--experimental-loader*": "deny"
-    "node --test *--test-reporter*": "deny"
-    "node --test *--eval*": "deny"
-    "node --test -e*": "deny"
-    "node --test * -e*": "deny"
-    "node --test *-e *": "deny"
-    "pnpm exec vitest run *": "allow"
-    "pnpm exec jest *": "allow"
-    "pnpm exec tsc *": "allow"
-    "pnpm exec biome check *": "allow"
-    "pnpm run test *": "allow"
-    "pnpm test *": "allow"
-    "pnpm run typecheck *": "allow"
-    "pnpm run tsc *": "allow"
-    "pnpm run lint *": "allow"
-    "pnpm run fix -- *": "allow"
-    "pnpm run fix --": "deny"
-    "npx --no-install vitest run *": "allow"
-    "npx --no-install jest *": "allow"
-    "pnpm exec jest *--clearCache*": "deny"
-    "pnpm exec jest *--cacheDirectory*": "deny"
-    "npx --no-install jest *--clearCache*": "deny"
-    "npx --no-install jest *--cacheDirectory*": "deny"
-    "pnpm exec vitest run *reportsDirectory*": "deny"
-    "npx --no-install vitest run *reportsDirectory*": "deny"
-    "npm test *": "allow"
-    "npm run test *": "allow"
-    "npm run typecheck *": "allow"
-    "npm run lint *": "allow"
-    "yarn test *": "allow"
-    "bun test *": "ask"
-    "pytest *": "allow"
-    "python -m pytest *": "allow"
-    "python3 -m pytest *": "allow"
-    "*pytest *--basetemp*": "deny"
-    "ruff check *": "allow"
-    "ruff format *": "allow"
-    "ruff check *--unsafe-fixes*": "deny"
-    "ruff check *--config*": "deny"
-    "pnpm exec biome check *--unsafe*": "deny"
-    "mypy *": "allow"
-    "mypy *--install-types*": "deny"
-    "mypy *--ins*": "deny"
-    "mypy *@*": "deny"
-    "pyright *": "allow"
-    "terraform validate *": "allow"
-    "terraform fmt -check *": "allow"
-    "terraform fmt *.tf": "allow"
-    "terraform fmt *-recursive*": "deny"
-    "terraform fmt -check -recursive *": "allow"
-    "mvn --offline test": "allow"
-    "mvn --offline verify": "allow"
-    "mvn -o test": "allow"
-    "mvn -o verify": "allow"
-    "./mvnw --offline test": "ask"
-    "./mvnw --offline verify": "ask"
-    "./mvnw -o test": "ask"
-    "./mvnw -o verify": "ask"
-    "gradle --offline test": "allow"
-    "gradle --offline check": "allow"
-    "./gradlew --offline test": "ask"
-    "./gradlew --offline check": "ask"
-    "go test *": "ask"
-    "go test *-exec*": "deny"
-    "go test *-toolexec*": "deny"
-    "cargo test --offline *": "allow"
-    "cargo test --offline *--config*": "deny"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
@@ -124,7 +35,7 @@ permission:
   <system>Subtask execution engine within the OpenAgents task management pipeline</system>
   <domain>Software implementation — coding, file creation, integration</domain>
   <task>Implement one atomic Beads task, following supplied acceptance criteria and project standards</task>
-  <constraints>Shell access is limited to task status, read-only inspection and local verification. Sequential execution. Self-review mandatory before handoff.</constraints>
+  <constraints>Work within the assigned scope under shared global/developer policy. Sequential execution. Self-review mandatory before handoff.</constraints>
   <tier level="1" desc="Critical Operations">
     - @context_first: Load provided/local/global context before coding; ContextScout only for real gaps
     - @external_scout_mandatory: ExternalScout for any external package
@@ -238,24 +149,19 @@ For each item in `deliverables`:
 - Use API patterns from ExternalScout (if applicable)
 - Write tests if specified in acceptance criteria
 
-Run the relevant tests, type checks and lint during implementation so failures can
-guide the next edit. Use installed tools and trusted project verification scripts;
-do not install dependencies, contact real services, mutate Git history or bypass
-an approval as a verification shortcut. Scope formatter/autofix commands to touched
-files. For Git inspection, disable external diff and text-conversion helpers with
-`--no-ext-diff --no-textconv`.
+Ordinary local reads, edits, tests, lint, type checks and builds within the requested
+scope run without separate approval under shared global/developer policy. Use the
+project's declared toolchain and scripts, and report unexpected dependency or
+lockfile changes outside the assigned scope.
 
-Use checks for the project's language: pytest/Ruff/type checks for Python,
-offline Maven/Gradle tests for Java, and validate/fmt checks for Terraform.
-Terraform test can create infrastructure; init, plan, apply and destroy are not
-verification shortcuts. Java allowances name exact offline goals/tasks so extra
-install, deploy or publish goals cannot be appended. Missing cached tools or
-dependencies are blockers, not permission to download them.
-Java wrappers, Go and Bun tests require approval because they can fetch missing
-toolchains or dependencies. Formatter scope is a task constraint, not a sandbox.
+Actual destructive effects, credential or security changes, production or
+infrastructure changes, and external publishing still require authorization, even
+when triggered by a test. This policy is not an OS sandbox for untrusted code.
 
-The delegate owns this local edit/check/fix loop. The caller owns independent
-acceptance and task closure; those are not substitutes for the delegate's checks.
+The delegate owns the local edit/test/check/fix loop and runs normal checks during
+implementation. The caller owns independent acceptance, task closure, commits and
+publishing unless explicitly assigned to the delegate; independent acceptance is
+not a substitute for the delegate's checks.
 If a command is denied, unavailable or blocked by the environment, return the
 exact command, failure and remaining gap instead of delegating around the limit.
 

@@ -1,5 +1,7 @@
 # Plan: Three-Layer Code Quality Enforcement for Coding Agents
 
+> Historical planning snapshot: the shell-permission audit below is no longer current. CoderAgent and TestEngineer now inherit the shared development policy and run their own checks. Current agent definitions and the README are authoritative.
+
 **Status:** Draft v2 — reviewed for noise, duplication, and rollout risk
 **Primary targets:** OpenAgent, CoderAgent (this repo); codemem as the first real project
 **Problem:** Agent-written code is drifting toward nested conditionals, long functions, and ternary soup. Prose standards ("keep functions small") are not changing behavior.
