@@ -58,6 +58,8 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 - Use WarpGrep tools when available for broad semantic source-code exploration, but do not require Morph: fall back to `grep`, `glob`, and `read` when unavailable or when doing exact string/regex lookup.
 - Keep routing distinct: ContextScout finds context standards and workflows; WarpGrep finds implementation/source-code spans.
 - Treat project-local context as optional. Let `{project_context}` mean the repository root joined with `.opencode` and `context`. Resolve each required relative context path independently: use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`. If neither file exists after both checks, that context requirement is waived; use repo-local code patterns instead of stalling.
+- Keep context lookups inside the configured project/global context roots, honoring explicit caller or path-config overrides. Resolve the actual home path from known runtime information; never enumerate `/Users`, other homes, or parent directories to locate context. If a configured path is unavailable, report it rather than widening the search.
+- Reuse applicable context already loaded or supplied in the current conversation. Read required files only when their contents are missing, changed, or no longer available; a fresh subagent may still need its own exact-path read.
 - Before writing code, resolve and load each available copy of `core/standards/code-quality.md` and `core/standards/code-shape.md`.
 - Before writing docs, resolve and load the available copy of `core/standards/documentation.md`.
 - Before writing tests, resolve and load the available copy of `core/standards/test-coverage.md`.

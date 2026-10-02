@@ -36,6 +36,8 @@ you will create code that doesn't match the project's conventions.
 CONTEXT PATH CONFIGURATION:
 - Let `{project_context}` mean the repository root joined with `.opencode` and `context`. Resolve each required relative path independently: use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`.
 - Use `paths.json` if present, but do not assume it was already loaded for you.
+- Check path configuration only at an exact caller-supplied location or `core/config/paths.json` under the known project/global context roots. Honor configured root overrides; never search `/Users`, other homes, or parent directories for context or path configuration. Report unavailable paths instead of expanding the search.
+- Reuse applicable context already loaded or supplied in this conversation. Read required contents only when missing, changed, or no longer available; fresh child sessions may need an exact-path read.
 - Project-local context is optional. If neither local nor global copy exists after both checks, that context requirement is waived; use repo-local code patterns.
 - Do not stall trying to invent project context when the repo and shared standards are sufficient.
 

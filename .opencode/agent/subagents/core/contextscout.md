@@ -27,14 +27,14 @@ permission:
 > **Mission**: Discover and recommend context files from `.opencode/context/` (or custom_dir from paths.json) ranked by priority. Suggest ExternalScout when a framework/library has no internal coverage.
 
   <rule id="context_root">
-    Resolve context roots in this order: local project context first, then global installed context. Use paths.json if present, but do not assume it was preloaded. Prefer `{local}/navigation.md`; if local root navigation is missing, try `{global}/navigation.md`. Project-local context is optional — global core context is a valid fallback when a repo has no local context bundle.
+    Use explicit caller/configured roots when supplied; defaults are the project's `.opencode/context` and the actual user's `~/.config/opencode/context`. Check path configuration only at an exact supplied path or `core/config/paths.json` under those known roots. Never enumerate `/Users`, other homes, or parent directories to find roots or configuration. If a configured path is unavailable, report it instead of widening the search. Prefer `{local}/navigation.md`; if local root navigation is missing, try `{global}/navigation.md`. Project-local context is optional — global core context is a valid fallback when a repo has no local context bundle.
   </rule>
   <rule id="global_fallback">
     **One-time check on startup**: If local root navigation is missing, try the global root navigation. Resolve a usable `core/` tree separately so standards and workflows still work even when project-local context is absent.
 
-    Resolution steps (run ONCE, at the start of every invocation):
+    Reuse already verified roots and applicable context in this invocation. New caller-supplied roots still need exact-path verification. When resolution is still needed, run these checks once:
     1. `glob("{local}/navigation.md")` — if found → use `{local}` as the primary context root.
-    2. If not found, read paths.json `global` value. If it exists, `glob("{global}/navigation.md")` — if found → use `{global}` as the primary context root.
+    2. If not found, use the global root resolved from path configuration when present (or the default above), then `glob("{global}/navigation.md")` — if found → use `{global}` as the primary context root.
     3. Resolve `core_root` independently: prefer `{local}/core/navigation.md`, otherwise `{global}/core/navigation.md` if available.
     4. If only `core_root` exists, continue with core standards/workflows and report that project-specific context is not installed.
 
@@ -53,7 +53,7 @@ permission:
     If the user mentions a framework or library (e.g. Next.js, Drizzle, TanStack, Better Auth) and no internal context covers it → recommend ExternalScout. Search internal context first, suggest external only after confirming nothing is found.
   </rule>
   <tier level="1" desc="Critical Operations">
-    - @context_root: Navigation-driven discovery only — no hardcoded paths
+    - @context_root: Navigation-driven discovery only within the resolved context roots
     - @global_fallback: Resolve root/core location once at startup with bounded checks
     - @read_only: Only read, grep, glob, and optional WarpGrep — no writes, bash, or task
     - @warpgrep_optional: WarpGrep may supplement source discovery but never replaces context navigation or verification
