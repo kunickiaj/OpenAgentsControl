@@ -446,6 +446,21 @@ Interactive wizard generates orchestrators, subagents, context files, workflows,
 - **ExternalScout** - Fetches live docs for external libraries (no outdated training data) **NEW!**
 - Plus category specialists: frontend, devops, copywriter, technical-writer, data-analyst
 
+CoderAgent and TestEngineer can run local tests, type checks, lint and scoped
+formatting during their work. They report executed commands and failures; the
+caller still owns independent acceptance and task closure. Unlisted shell
+commands remain restricted, and static inspection does not count as a passing
+test or type check.
+
+The check allowances cover JavaScript/TypeScript, Python, Go, Rust, Java and
+Terraform. Java uses exact offline Maven/Gradle goals; Terraform allows
+validation and formatting, not automatic infrastructure tests or apply/destroy.
+Use already installed tools and cached dependencies. These commands execute
+trusted project code with the user's authority; the allowlist is not a sandbox.
+Java wrappers, Go and Bun tests ask for approval because they can download tools
+or dependencies. Formatter scope is enforced by task instructions, not by these
+command patterns.
+
 ### ⚡ Productivity Commands
 - `/add-context` - Interactive wizard to add your patterns
 - `/commit` - Smart git commits with conventional format

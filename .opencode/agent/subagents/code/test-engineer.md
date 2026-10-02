@@ -5,23 +5,100 @@ mode: subagent
 temperature: 0.1
 permission:
   bash:
-    "npx vitest *": "allow"
-    "npx jest *": "allow"
+    "*": "deny"
+    "git status *": "allow"
+    "git diff --no-ext-diff --no-textconv *": "allow"
+    "git show --no-ext-diff --no-textconv *": "allow"
+    "git log --no-ext-diff --no-textconv *": "allow"
+    "git rev-parse *": "allow"
+    "git ls-files *": "allow"
+    "git diff *--output*": "deny"
+    "git show *--output*": "deny"
+    "git log *--output*": "deny"
+    "git *--ext-diff*": "deny"
+    "git *--textconv*": "deny"
+    "node --test *": "allow"
+    "node --test *--import*": "deny"
+    "node --test *--require*": "deny"
+    "node --test -r*": "deny"
+    "node --test * -r*": "deny"
+    "node --test *-r *": "deny"
+    "node --test *--loader*": "deny"
+    "node --test *--experimental-loader*": "deny"
+    "node --test *--test-reporter*": "deny"
+    "node --test *--eval*": "deny"
+    "node --test -e*": "deny"
+    "node --test * -e*": "deny"
+    "node --test *-e *": "deny"
+    "pnpm exec vitest run *": "allow"
+    "pnpm exec jest *": "allow"
+    "pnpm exec tsc *": "allow"
+    "pnpm exec biome check *": "allow"
+    "pnpm run typecheck *": "allow"
+    "pnpm run tsc *": "allow"
+    "pnpm run lint *": "allow"
+    "pnpm run fix -- *": "allow"
+    "pnpm run fix --": "deny"
+    "npx --no-install vitest run *": "allow"
+    "npx --no-install jest *": "allow"
+    "pnpm exec jest *--clearCache*": "deny"
+    "pnpm exec jest *--cacheDirectory*": "deny"
+    "npx --no-install jest *--clearCache*": "deny"
+    "npx --no-install jest *--cacheDirectory*": "deny"
+    "pnpm exec vitest run *reportsDirectory*": "deny"
+    "npx --no-install vitest run *reportsDirectory*": "deny"
     "pytest *": "allow"
+    "python -m pytest *": "allow"
+    "python3 -m pytest *": "allow"
+    "*pytest *--basetemp*": "deny"
+    "ruff check *": "allow"
+    "ruff format *": "allow"
+    "ruff check *--unsafe-fixes*": "deny"
+    "ruff check *--config*": "deny"
+    "pnpm exec biome check *--unsafe*": "deny"
+    "mypy *": "allow"
+    "mypy *--install-types*": "deny"
+    "mypy *--ins*": "deny"
+    "mypy *@*": "deny"
+    "pyright *": "allow"
+    "terraform validate *": "allow"
+    "terraform fmt -check *": "allow"
+    "terraform fmt *.tf": "allow"
+    "terraform fmt *-recursive*": "deny"
+    "terraform fmt -check -recursive *": "allow"
+    "mvn --offline test": "allow"
+    "mvn --offline verify": "allow"
+    "mvn -o test": "allow"
+    "mvn -o verify": "allow"
+    "./mvnw --offline test": "ask"
+    "./mvnw --offline verify": "ask"
+    "./mvnw -o test": "ask"
+    "./mvnw -o verify": "ask"
+    "gradle --offline test": "allow"
+    "gradle --offline check": "allow"
+    "./gradlew --offline test": "ask"
+    "./gradlew --offline check": "ask"
     "npm test *": "allow"
     "npm run test *": "allow"
+    "npm run typecheck *": "allow"
+    "npm run lint *": "allow"
     "yarn test *": "allow"
     "pnpm test *": "allow"
-    "bun test *": "allow"
-    "go test *": "allow"
-    "cargo test *": "allow"
+    "pnpm run test *": "allow"
+    "bun test *": "ask"
+    "go test *": "ask"
+    "go test *-exec*": "deny"
+    "go test *-toolexec*": "deny"
+    "cargo test --offline *": "allow"
+    "cargo test --offline *--config*": "deny"
     "rm -rf *": "ask"
     "sudo *": "deny"
-    "*": "deny"
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
     "**/*.secret": "deny"
+    "node_modules/**": "deny"
+    ".git/**": "deny"
   task:
     contextscout: "allow"
     externalscout: "allow"
@@ -104,6 +181,27 @@ task(subagent_type="ContextScout", description="Find testing standards", prompt=
    - ✅ Positive: [expected success outcome]
    - ❌ Negative: [expected failure/edge case handling]
 ---
+
+## Local Verification
+
+Run targeted tests locally as you author them, using installed tools and trusted
+project scripts. Tests execute repository code with the user's authority; command
+allowances are not a sandbox. Keep external services mocked, avoid dependency
+installs, and scope formatter/autofix commands to touched files. Use
+`--no-ext-diff --no-textconv` for Git inspection.
+
+Use the project's installed language tools: pytest/Ruff/type checks, exact
+offline Maven/Gradle test goals, or Terraform validate/fmt checks. Terraform test
+can create infrastructure; init, plan, apply and destroy stay outside these
+allowances. Do not append Java publishing/install/deploy goals or fetch missing
+tools or dependencies to make a check run.
+Java wrappers, Go and Bun tests require approval because they can fetch missing
+toolchains or dependencies. Formatter scope is a task constraint, not a sandbox.
+
+The delegate owns the local test/check/fix loop; the caller owns independent
+acceptance and task closure. Report the exact commands and results. If validation
+is denied, unavailable or fails, report the blocker and remaining gap instead of
+claiming success or delegating around a permission or depth limit.
 
 ## What NOT to Do
 
