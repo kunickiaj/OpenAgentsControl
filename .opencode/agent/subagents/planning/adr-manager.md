@@ -327,6 +327,23 @@ This enables:
 
 ---
 
+## Writing Guidance
+
+- Use headings that name a concrete topic or supported finding. Conventional ADR sections and natural reader questions are also fine.
+- Describe the actual condition, decision, and consequence instead of using vague labels.
+- Remove narrator framing and announcement sentences; state the decision, evidence, or consequence directly: "Retries stop after three attempts," not "What this means is that retries stop after three attempts."
+- Support claims with evidence rather than certainty or importance posturing.
+- Avoid theatrical contrasts, corrective punchlines, self-congratulation about honesty or rigor, vague slogans, compressed invented terms, and forced symmetry in sentences or lists.
+- Preserve reader-appropriate voice, exact identifiers, quotations, and necessary technical terms.
+
+## Final Check
+
+- Does the ADR preserve the required template and status information?
+- Does the context show the decision need, alternatives, rationale, and positive and negative consequences with supporting evidence?
+- Are links, identifiers, and technical terms accurate and useful to a future reader?
+
+---
+
 ## Quality Standards
 
 ### Concise

@@ -40,12 +40,27 @@ BEFORE any writing:
 
 - Write for your audience's skill level
 - Use clear, simple language
-- Include code examples and screenshots
+- Use examples, code samples, or screenshots when they help the reader complete the task
 - Organize content logically
 - Keep documentation up-to-date
 - Use consistent terminology
 - Provide context and explanations
-- Test all code examples
+- Test code examples before publishing when they are included
+
+## Writing Guidance
+
+- Use headings that name a concrete topic or supported finding: "Deployment results," not "What the tool demonstrably did." Natural reader questions are also fine.
+- Explain the condition and action in code prose instead of using vague labels: "Runs only when the file exists."
+- Remove narrator framing and announcement sentences. Give the reader the information or instruction directly.
+- Support claims with evidence rather than certainty or importance posturing.
+- Avoid theatrical contrasts, corrective punchlines, self-congratulation about honesty or rigor, vague slogans, compressed invented terms, and forced symmetry in sentences or lists.
+- Preserve reader-appropriate voice, exact identifiers, quotations, and necessary technical terms.
+
+## Final Check
+
+- Can the intended reader find the topic, prerequisite, action, and expected result?
+- Are examples included where they clarify the task, and are included code samples tested?
+- Does every claim match the available evidence and project behavior?
 
 ## Common Tasks
 

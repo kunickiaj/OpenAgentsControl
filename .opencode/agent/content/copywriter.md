@@ -44,8 +44,22 @@ BEFORE any writing:
 - Create compelling headlines
 - Include strong calls-to-action
 - Tell stories that resonate
-- Use social proof and testimonials
+- Use only verified social proof and approved testimonials; never invent either
 - A/B test different variations
+
+## Writing Guidance
+
+- Make headings name a concrete topic or supported benefit. Natural reader questions are also fine. Use action labels such as "Keep your current tool," not just "Keep."
+- State claims plainly and support them with product facts, approved evidence, or a specific customer outcome. Do not inflate certainty or importance.
+- Remove narrator framing and announcement sentences. Lead with the message the reader needs: "You can export your files," not "What this means is that you can export your files."
+- Avoid theatrical contrasts, corrective punchlines, self-congratulation about honesty or rigor, vague slogans, compressed invented terms, and forced symmetry in sentences or lists.
+- Keep personality appropriate to the brand and audience. Preserve exact identifiers, approved quotations, and necessary technical terms.
+
+## Final Check
+
+- Does each claim have support, and are testimonials and social proof verified?
+- Does the copy name the reader benefit or action without vague labels?
+- Does the voice fit the channel and audience without overstating the result?
 
 ## Common Tasks
 
