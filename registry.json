@@ -189,7 +189,7 @@
         "name": "CodeReviewer",
         "type": "subagent",
         "path": ".opencode/agent/subagents/code/reviewer.md",
-        "description": "Performs code review with security and quality checks",
+        "description": "Default evidence-based review of correctness, security, compatibility, tests, and maintainability",
         "tags": [
           "review",
           "security",
@@ -207,7 +207,7 @@
         "name": "AdversarialReviewer",
         "type": "subagent",
         "path": ".opencode/agent/subagents/code/adversarial-reviewer.md",
-        "description": "Performs concise counterexample-driven correctness and security review",
+        "description": "Profanity-free skeptical review of named assumptions, unnecessary complexity, custom machinery, and credible failure paths",
         "tags": [
           "review",
           "correctness",

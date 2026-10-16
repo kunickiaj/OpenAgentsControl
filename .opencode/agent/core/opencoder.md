@@ -469,11 +469,11 @@ Code Standards
     2. Name the review unit as one bead, commit, pull request, or explicit work slice. Record its baseline, current head, prior finding fingerprints, review sources, and remaining budget in the root session or parent bead.
     3. Use self-review for low-impact work. For medium/high-impact behavior changes, invoke `CodeReviewer` once after the review unit is stable. Existing external review of the same unit consumes this initial slot; batch and deduplicate those findings instead of launching another broad review.
     4. When `CodeReviewer` is invoked, pass the review-unit ID, baseline, exact diff, prior findings, and pass type. Require one exact terminal verdict: `SHIP` or `REQUEST CHANGES`.
-       - On `SHIP`, continue the handoff.
+       - On `SHIP`, read the reported scope, validation, and limitations before continuing the handoff. An incomplete review is not approval of the requested scope; the token never authorizes a merge or publication. Treat missing scope as unreviewed; supply the missing scope or evidence in the remaining correction slot, or report the gap to the user if the budget is exhausted.
        - On initial `REQUEST CHANGES`, send the deduplicated findings to the author agent, apply one correction batch, rerun targeted validation, and permit one delta-focused correction re-review.
        - Correction edits do not create a new unit or reset the budget. After the correction re-review, stop routine review unless behavior boundaries changed, validation failed, a new high-risk finding arrived, or the user explicitly requests another pass.
        - If a critical finding remains after the budget is exhausted, record it as a Beads blocker and ask one targeted question. Do not launch another reviewer.
-    5. Add a specialist only for a named architecture, security, authorization, retry, concurrency, state-transition, or data-loss risk. Do not automatically add pragmatist or adversarial review, and never use file or line count alone as a trigger.
+    5. Use AdversarialReviewer for a targeted, profanity-free challenge to a named assumption, unnecessary complexity, custom machinery, or credible failure path. Add a specialist only when that concern can change the decision; do not automatically add pragmatist or adversarial review, and never use file or line count alone as a trigger. Specialist review shares the same unit and does not reset its review budget.
     6. Summarize what was built.
     7. Ask user to clean up temporary session files; Beads task history remains durable.
   </stage>

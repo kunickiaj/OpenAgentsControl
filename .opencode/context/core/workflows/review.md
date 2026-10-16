@@ -1,19 +1,16 @@
-<!-- Context: workflows/review | Priority: high | Version: 2.0 | Updated: 2025-01-21 -->
+<!-- Context: workflows/review | Priority: high | Version: 3.0 | Updated: 2026-10-16 -->
 
 # Code Review Guidelines
 
-> **Note**: This is a reference file. The full content is in [`code-review.md`](./code-review.md).
+> **Reference:** The full guidance is in [`code-review.md`](./code-review.md).
 
-## Quick Reference
+## Quick reference
 
-**Golden Rule**: Review code as you'd want yours reviewed - thoroughly but kindly
+- Review one named unit from a stable baseline.
+- Use **CodeReviewer** by default; use **AdversarialReviewer** for a targeted skeptical review; use **gordon-ramsay** only when the user explicitly asks for that persona.
+- Block only Critical, High, or concrete Medium findings. Keep simplification and style suggestions non-blocking.
+- Support each finding with changed-code evidence, a concrete impact, and the smallest correction.
+- `SHIP` means no blockers were found in the reviewed scope. It does not authorize a merge or certify a complete audit.
+- The parent owns the budget: one initial review and one delta correction review per unit. Do not create review cascades.
 
-**Checklist**: Functionality, Code Quality, Security, Testing, Performance, Maintainability
-
-**Report Format**: Summary, Assessment, Issues (🔴🟡🔵), Positive Observations, Recommendations
-
-**Principles**: Constructive, Thorough, Timely
-
----
-
-For the complete code review guidelines, see [code-review.md](./code-review.md).
+For the report format, severity definitions, and evidence standard, see [code-review.md](./code-review.md).

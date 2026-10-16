@@ -3,7 +3,7 @@
 ## Provisional Decision
 
 - Keep **CodeReviewer at medium** as the default general-purpose quality gate.
-- Use **AdversarialReviewer at medium** for targeted escalation on high-risk behavior, state transitions, retries, authorization, and isolation boundaries.
+- Use **AdversarialReviewer at medium** for a targeted challenge to a named assumption, unnecessary complexity, custom machinery, or credible failure path. It is not a routine second general review. This broader role was added after the run below; the historical results do not evaluate its design critique or profanity-free tone.
 - Use the external **Honest Agents Gordon Ramsay at medium** only when explicitly requested. The evaluated prompt is not defined or registered by this repository.
 - Reserve **high** effort for unusually ambiguous or high-impact reviews. This run observed no additional detections and measured 20.1-28.2% higher mean latency.
 
@@ -54,6 +54,18 @@ The runner sends `variant` in the SDK prompt request instead of relying only on 
 | Corrected standalone run | `Eval Runner` | `medium` |
 
 The six result cells above were rerun after both routing and terminal-verdict validation were corrected. They replace earlier invalid runs that executed `OpenAgent` or persisted the default variant.
+
+## Runtime permission regression check
+
+```sh
+python3 scripts/validation/validate-reviewer-runtime.py
+```
+
+Requires Python 3.9+ and an installed OpenCode V2 executable on `PATH`, not a tool-manager shim. The check prints the installed version, copies the real reviewer prompts into a temporary project, and starts its own disposable background service on a separately allocated loopback port with scrubbed environment and isolated home, XDG, and temporary directories. It verifies runtime paths, service identity, and project location before checking the active prompts, native permissions, edit and delegation denials, ContextScout exceptions, and inherited shell allow/ask rules. The service stops before temporary files are removed, including after setup failures. No model, credentials, dependency installation, user-service reload, or mutating tool request is needed.
+
+OpenCode 2.0.29's standalone API returned an empty agent registry even with normal installed configuration, so this check uses an isolated background service instead. CLI calls time out after 60 seconds. Only an initial `AgentNotFoundError` can trigger readiness retries: at most three lookups within 15 seconds, with retries reported on stdout. Other failures stop immediately; the check never falls back to the user's service.
+
+Permission probes evaluate the returned rules locally with last-match wildcard matching; they do not exercise a tool executor or prove model compliance. The fixture replaces user configuration, but machine-managed configuration can still affect the installed runtime. This check does not rerun the historical benchmark or measure review quality, tone, latency, or cost.
 
 ## Limitations
 

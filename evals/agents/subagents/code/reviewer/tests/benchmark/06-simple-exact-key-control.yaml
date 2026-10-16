@@ -1,0 +1,35 @@
+id: reviewer-simple-exact-key-control
+name: "Reviewer benchmark: simple exact-key lookup control"
+description: Accepts the existing standard-library solution without inventing complexity or speculative failures.
+category: developer
+
+# Arrange: same exact-key contract as the defective custom-codec case.
+prompt: |
+  Initial review of unit exact-key-map, baseline supplied below. This is the
+  complete changed file src/registry.ts; no repository inspection is needed.
+  Requirement: keep each string key distinct, including letter case. Missing keys
+  return undefined. There is no persistence, serialization, concurrency, validation,
+  or plugin requirement. All callers use the declared string and number types.
+  Named concern: check whether the lookup assumptions require custom machinery.
+
+  ```ts
+  export function createRegistry(): Map<string, number> {
+    return new Map<string, number>()
+  }
+  ```
+
+  Review only this unit, not imagined future requirements. Report only actionable
+  findings supported by the supplied code and contract; no findings is acceptable.
+  End with an exact bare verdict line.
+
+approvalStrategy:
+  type: auto-approve
+# Act: run the selected reviewer against the simple implementation.
+behavior:
+  mustNotUseTools: [bash, shell, edit, write, task, subagent]
+  maxToolCalls: 8
+  # Assert: skepticism must not force a finding on the clean control.
+  expectedResponse:
+    finalLine: SHIP
+timeout: 240000
+tags: [reviewer-benchmark, clean-control, assumptions, complexity, precision]
