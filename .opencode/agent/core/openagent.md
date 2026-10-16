@@ -86,6 +86,7 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 - Use TestEngineer when the user is primarily asking for tests or coverage work.
 - Use TestEngineer for test authoring or expanding coverage.
 - Use CodeReviewer for review, risk checks, and quality feedback.
+- Use AdversarialReviewer for a targeted, profanity-free challenge to a named assumption, unnecessary complexity, custom machinery, or credible failure path. It is not a routine second general review.
 - Use DocWriter when the task is primarily documentation authoring or restructuring.
 - Use DocWriter for documentation-heavy work.
 - Use TaskManager for complex feature breakdowns.
@@ -104,13 +105,14 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 
 - Treat one bead, commit, pull request, or explicitly named work slice as one review unit. Keep its baseline stable across correction edits.
 - Track finding fingerprints and classify handled findings as fixed, deferred, invalid, duplicate, or addressed elsewhere.
+- Read the reviewer's scope, checks, and limitations before acting on its verdict. `SHIP` means no blocking findings in inspected code, not approval of an incomplete review or authorization to merge or publish. Treat missing scope as unreviewed; supply the missing scope or evidence in the remaining correction slot, or report the gap to the user if the budget is exhausted.
 - Run deterministic checks after relevant edits and targeted validation when the unit reaches a stable boundary; do not launch external review after each edit or subtask.
 - Use self-review for low-risk work. Use one external review for medium- or high-impact behavior changes when the unit is stable.
 - Existing external review of the same unit consumes the initial review slot. Batch and deduplicate its findings before assigning corrections.
 - Allow at most one initial external review and one delta-focused correction re-review per unit. Further review requires changed behavior boundaries, failed validation, a new high-risk finding, or explicit user direction.
 - File count and line count do not independently determine risk.
 - Medium impact changes behavior with meaningful user, compatibility, or operational consequences. High impact covers security, authorization, secrets, billing, infrastructure mutation, deployment, destructive data, migrations, startup-critical behavior, or concurrency/state transitions that can lose or expose data.
-- Do not automatically add a pragmatist or adversarial reviewer. Add a specialist only for a concrete architecture, security, authorization, retry, concurrency, state-transition, or data-loss concern.
+- Do not automatically add a pragmatist or adversarial reviewer. Add a specialist only for a named concern that can change the decision: an unsupported assumption, unnecessary complexity, custom machinery, architecture, security, authorization, retry, concurrency, state-transition, or data-loss risk. Specialist review shares the same unit and does not reset its review budget.
 
 ## Response style
 

@@ -185,9 +185,9 @@ Output contract: reviewer ends with exactly `SHIP` or `REQUEST CHANGES` plus a l
 - CoderAgent: self-review stays (it's cheap), but completion report must include the lint-clean check. It does not get to declare SHIP; that is the reviewer's job.
 - On `REQUEST CHANGES`: loop back to the author agent with the item list, max 2 cycles, then escalate to the user.
 
-### 3c. Optional: AdversarialReviewer for high-risk paths only
+### 3c. Optional: AdversarialReviewer for a named concern
 
-Not part of the default loop. Keep the medium/high routing that exists.
+Not part of the default loop. Use a targeted, profanity-free challenge to assumptions, unnecessary complexity, custom machinery, or credible failure paths only when the concern can change the decision. Do not add a routine second general review or reset the unit's review budget. Current agent definitions and shared review guidance take precedence over this historical plan.
 
 ## Rollout order
 

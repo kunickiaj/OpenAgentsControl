@@ -1,0 +1,47 @@
+id: reviewer-complexity-assumption
+name: "Reviewer benchmark: challenge a custom lookup assumption"
+description: Detects a custom abstraction that violates exact-key requirements and identifies the simpler existing primitive.
+category: developer
+
+# Arrange: the requirement and complete changed file are inline; no service calls.
+prompt: |
+  Initial review of unit exact-key-registry, baseline supplied below. This is the
+  complete changed file src/registry.ts; no repository inspection is needed.
+  Requirement: keep each string key distinct, including letter case. Missing keys
+  return undefined. The author claims the reusable codec is needed for extensibility
+  and assumes all identifiers can be normalized. No other codecs or callers exist.
+  Named concern: challenge that assumption and the need for custom machinery.
+
+  ```ts
+  interface KeyCodec { encode(key: string): string }
+  class CaseFoldedCodec implements KeyCodec {
+    encode(key: string): string { return key.toLowerCase() }
+  }
+  export class CaseFoldedRegistry {
+    private readonly values = new Map<string, number>()
+    constructor(private readonly codec: KeyCodec = new CaseFoldedCodec()) {}
+    set(key: string, value: number): void {
+      this.values.set(this.codec.encode(key), value)
+    }
+    get(key: string): number | undefined {
+      return this.values.get(this.codec.encode(key))
+    }
+  }
+  ```
+
+  Review only this unit. Give a concrete counterexample and the smallest correction
+  if needed. Include relevant symbol names and the requirement in any finding.
+  End with an exact bare verdict line.
+
+approvalStrategy:
+  type: auto-approve
+# Act: run the selected reviewer against the supplied change.
+behavior:
+  mustNotUseTools: [bash, shell, edit, write, task, subagent]
+  maxToolCalls: 8
+  # Assert: challenge both the assumption and the needless replacement of Map.
+  expectedResponse:
+    contains: [CaseFoldedRegistry, Map, case]
+    finalLine: REQUEST CHANGES
+timeout: 240000
+tags: [reviewer-benchmark, known-defect, assumptions, complexity]

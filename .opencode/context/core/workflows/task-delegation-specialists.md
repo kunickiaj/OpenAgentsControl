@@ -1,7 +1,7 @@
-<!-- Context: workflows/delegation-specialists | Priority: high | Version: 1.0 | Updated: 2026-02-05 -->
+<!-- Context: workflows/delegation-specialists | Priority: high | Version: 1.1 | Updated: 2026-10-16 -->
 # When to Delegate to Specialists
 
-**Purpose**: Guidance on when to delegate to specific specialist agents
+**Purpose**: Guidance on when to delegate to specific specialist agents. Pass standards, reference paths, scope, and acceptance criteria inline or through an existing task context; do not require a new session file for routine local work.
 
 ---
 
@@ -17,23 +17,19 @@
 
 **Delegation pattern:**
 ```javascript
-task(
-  subagent_type="OpenFrontendSpecialist",
-  description="Design {feature} UI",
-  prompt="Load context from .tmp/sessions/{session-id}/context.md
-  
-  Design {feature} following 4-stage workflow:
-  1. Stage 0: Create design plan file (MANDATORY FIRST)
-  2. Stage 1: Layout (ASCII wireframe)
-  3. Stage 2: Theme (design system, colors)
-  4. Stage 3: Animation (micro-interactions)
-  5. Stage 4: Implementation (single HTML file)
-  
-  Request approval between stages."
-)
+subagent({
+  agent: "OpenFrontendSpecialist",
+  description: "Design {feature} UI",
+  prompt: `
+    Design {feature}.
+    Standards: {design standards paths}
+    Reference files: {relevant files}
+    Acceptance criteria: {expected UI and accessibility outcomes}
+  `
+})
 ```
 
-**Why?** Follows structured 4-stage workflow with approval gates, produces polished UI.
+**Why?** Applies UI and accessibility expertise to work that needs design judgment.
 
 ---
 
@@ -47,38 +43,46 @@ task(
 
 **Delegation pattern:**
 ```javascript
-task(
-  subagent_type="TestEngineer",
-  description="Write tests for {feature}",
-  prompt="Load context from .tmp/sessions/{session-id}/context.md
-  
-  Write comprehensive tests for {feature}
-  Files to test: {file list}
-  Follow test coverage standards from context."
-)
+subagent({
+  agent: "TestEngineer",
+  description: "Write tests for {feature}",
+  prompt: `
+    Write tests for {feature}.
+    Standards: {test standards paths}
+    Reference files: {file list}
+    Acceptance criteria: {behaviors and error cases that must pass}
+  `
+})
 ```
 
 ---
 
 ## CodeReviewer - Quality Assurance
 
+Use **CodeReviewer** as the default review agent. Use **AdversarialReviewer** only for a named concern — an assumption, unnecessary complexity, custom machinery, or a credible failure path — that can change the decision. It is not a routine second general review, including for high-risk changes. See [code-review.md](./code-review.md) for severity, evidence, and review-budget rules.
+
 **✅ DELEGATE when:**
-- Reviewing complex implementations
-- Security-critical code review
-- Pre-merge quality checks
-- Architecture validation
+- The user requests a review.
+- A medium/high-impact behavior change is stable and ready for its initial review.
+- Self-review leaves a concrete correctness, compatibility, security, or maintainability question.
 
 **Delegation pattern:**
 ```javascript
-task(
-  subagent_type="CodeReviewer",
-  description="Review {feature}",
-  prompt="Load context from .tmp/sessions/{session-id}/context.md
-  
-  Review {feature} against standards
-  Files: {file list}
-  Focus: security, performance, maintainability"
-)
+subagent({
+  agent: "CodeReviewer",
+  description: "Review {feature}",
+  prompt: `
+    Review unit: {commit, pull request, bead, or named work slice}
+    Baseline: {baseline}
+    Exact diff or head: {diff or head}
+    Pass type: {initial or correction}
+    Prior finding fingerprints and status: {findings or none}
+    Standards: .opencode/context/core/workflows/code-review.md, {other standards paths}
+    Reference files: {file list}
+    Acceptance criteria: {requirements}
+    Review the scoped change only. Report blockers with evidence, concrete impact, and the smallest correction.
+  `
+})
 ```
 
 ---
@@ -92,15 +96,17 @@ task(
 
 **Delegation pattern:**
 ```javascript
-task(
-  subagent_type="CoderAgent",
-  description="Implement {subtask}",
-  prompt="Load context from .tmp/sessions/{session-id}/context.md
-  
-  Implement subtask: {description}
-  Follow implementation spec exactly.
-  Mark subtask complete when done."
-)
+subagent({
+  agent: "CoderAgent",
+  description: "Implement {subtask}",
+  prompt: `
+    Implement: {description}
+    Standards: {standards paths}
+    Reference files: {relevant files}
+    Acceptance criteria: {completion conditions}
+    Validation: {commands}
+  `
+})
 ```
 
 ---
@@ -109,7 +115,7 @@ task(
 
 | Scenario | Agent | Why |
 |----------|-------|-----|
-| New landing page | OpenFrontendSpecialist | 4-stage design workflow |
+| New landing page | OpenFrontendSpecialist | UI and accessibility expertise |
 | Test suite for auth | TestEngineer | Comprehensive coverage |
 | Security review | CodeReviewer | Security focus |
 | Single API endpoint | CoderAgent | Focused implementation |
@@ -119,7 +125,7 @@ task(
 
 ## Key Principle
 
-**TestEngineer and CodeReviewer should ALWAYS receive session context path.** This ensures they review against the same standards used during implementation.
+Give TestEngineer and CodeReviewer the standards, source references, acceptance criteria, and validation evidence they need. An existing task context can carry those details, but a new session context is optional.
 
 ---
 
