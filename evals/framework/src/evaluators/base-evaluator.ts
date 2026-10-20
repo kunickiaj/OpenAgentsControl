@@ -48,6 +48,14 @@ export abstract class BaseEvaluator implements IEvaluator {
     );
   }
 
+  /** Recognize delegation without rewriting the recorded event or tool name. */
+  protected getDelegationTools(timeline: TimelineEvent[]): TimelineEvent[] {
+    return this.getToolCalls(timeline).filter(event => {
+      const tool = event.data?.tool || event.data?.state?.tool;
+      return tool === 'task' || tool === 'subagent';
+    });
+  }
+
   /**
    * Get execution tools (bash, write, edit, task)
    */

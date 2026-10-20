@@ -1,0 +1,45 @@
+id: rewrite-mapped-context-followup
+name: "Rewrite: Reuse Mapped Context On Follow-up"
+description: |
+  A follow-up stays in the same repository and standards area. Explicit file
+  paths and verified context should avoid repeated discovery or delegation.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      This is a read-only task in the current OpenAgentsControl checkout.
+      The context map for this task is already known:
+      - .opencode/context/core/standards/code-quality.md
+      - .opencode/context/core/standards/code-shape.md
+      - .opencode/context/core/standards/test-coverage.md
+      - .opencode/context/core/standards/documentation.md
+      Read those exact files directly and summarize the testing and documentation
+      rules in two bullets. No other subsystem or repository is involved.
+      Do not edit files, create session artifacts, or run commands that change state.
+    expectContext: true
+    contextFile: .opencode/context/core/standards/test-coverage.md
+  - text: |
+      Follow-up in the same checkout, same task, and same mapped standards:
+      condense your two bullets into one sentence. Reuse the context you just
+      verified; no new area or missing information has been introduced.
+      Keep this read-only and do not create temporary files.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [read]
+  mustNotUseTools: [task, subagent, write, edit]
+  shouldDelegate: false
+  requiresContext: true
+  minToolCalls: 1
+  maxToolCalls: 6
+
+timeout: 120000
+
+tags:
+  - rewrite
+  - context-reuse
+  - multi-turn

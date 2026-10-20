@@ -39,6 +39,13 @@ export class BehaviorEvaluator extends BaseEvaluator {
     this.behavior = behavior;
   }
 
+  private wasToolUsed(tools: string[], expected: string): boolean {
+    const delegationTools = ['task', 'subagent'];
+    return tools.some(tool => tool === expected || (
+      delegationTools.includes(expected) && delegationTools.includes(tool)
+    ));
+  }
+
   async evaluate(timeline: TimelineEvent[], sessionInfo: SessionInfo): Promise<EvaluationResult> {
     const checks: Check[] = [];
     const violations: Violation[] = [];
@@ -99,7 +106,7 @@ export class BehaviorEvaluator extends BaseEvaluator {
       const missingTools: string[] = [];
       
       for (const requiredTool of this.behavior.mustUseTools) {
-        const wasUsed = toolsUsed.includes(requiredTool);
+        const wasUsed = this.wasToolUsed(toolsUsed, requiredTool);
         
         if (!wasUsed) {
           missingTools.push(requiredTool);
@@ -146,7 +153,7 @@ export class BehaviorEvaluator extends BaseEvaluator {
       const unsatisfiedSets: { set: string[]; missing: string[] }[] = [];
       
       for (const toolSet of this.behavior.mustUseAnyOf) {
-        const missingFromSet = toolSet.filter(tool => !toolsUsed.includes(tool));
+        const missingFromSet = toolSet.filter(tool => !this.wasToolUsed(toolsUsed, tool));
         if (missingFromSet.length === 0) {
           satisfiedSets.push(toolSet);
         } else {
@@ -198,7 +205,7 @@ export class BehaviorEvaluator extends BaseEvaluator {
       const forbiddenToolsUsed: string[] = [];
       
       for (const forbiddenTool of this.behavior.mustNotUseTools) {
-        const wasUsed = toolsUsed.includes(forbiddenTool);
+        const wasUsed = this.wasToolUsed(toolsUsed, forbiddenTool);
         
         if (wasUsed) {
           forbiddenToolsUsed.push(forbiddenTool);
@@ -423,20 +430,24 @@ export class BehaviorEvaluator extends BaseEvaluator {
     }
 
     // Check 7: shouldDelegate
-    if (this.behavior.shouldDelegate) {
-      const taskCalls = this.getToolCallsByName(timeline, 'task');
+    if (this.behavior.shouldDelegate !== undefined) {
+      const taskCalls = this.getDelegationTools(timeline);
       const hasDelegation = taskCalls.length > 0;
+      const shouldDelegate = this.behavior.shouldDelegate;
+      const matchesExpectation = hasDelegation === shouldDelegate;
 
-      if (!hasDelegation) {
+      if (!matchesExpectation) {
         violations.push(
           this.createViolation(
-            'missing-delegation',
-            'warning',
-            'Agent should have delegated to a subagent',
+            shouldDelegate ? 'missing-delegation' : 'unexpected-delegation',
+            shouldDelegate ? 'warning' : 'error',
+            shouldDelegate
+              ? 'Agent should have delegated to a subagent'
+              : 'Agent delegated when direct execution was required',
             Date.now(),
             {
-              shouldDelegate: true,
-              delegated: false,
+              shouldDelegate,
+              delegated: hasDelegation,
             }
           )
         );
@@ -444,7 +455,7 @@ export class BehaviorEvaluator extends BaseEvaluator {
 
       checks.push({
         name: 'should-delegate',
-        passed: hasDelegation,
+        passed: matchesExpectation,
         weight: 75,
         evidence: [
           this.createEvidence(
@@ -453,7 +464,7 @@ export class BehaviorEvaluator extends BaseEvaluator {
               ? `Agent delegated to ${taskCalls.length} subagent(s)`
               : 'Agent did not delegate to subagents',
             {
-              shouldDelegate: true,
+              shouldDelegate,
               delegated: hasDelegation,
               delegationCount: taskCalls.length,
             }

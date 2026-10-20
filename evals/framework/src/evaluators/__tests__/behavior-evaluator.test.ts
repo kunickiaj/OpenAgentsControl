@@ -343,6 +343,72 @@ describe('BehaviorEvaluator', () => {
   });
 
   describe('shouldDelegate', () => {
+    // Routing restrictions must recognize legacy, current, and nested tool events.
+    const delegationCalls = [
+      { label: 'legacy task', data: { tool: 'task', input: { subagent_type: 'ContextScout' } } },
+      { label: 'current subagent', data: { tool: 'subagent', input: { agent: 'ContextScout' } } },
+      { label: 'nested task', data: { state: { tool: 'task', input: { subagent_type: 'ContextScout' } } } },
+      { label: 'nested subagent', data: { state: { tool: 'subagent', input: { agent: 'ContextScout' } } } },
+    ];
+
+    it.each(delegationCalls)('fails on $label when delegation is forbidden', async ({ data }) => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({ shouldDelegate: false });
+      const timeline: TimelineEvent[] = [{ timestamp: 1000, type: 'tool_call', data }];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(false);
+      expect(result.violations).toHaveLength(1);
+      expect(result.violations[0].severity).toBe('error');
+    });
+
+    it.each(delegationCalls)('accepts $label when delegation is suggested', async ({ data }) => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({ shouldDelegate: true });
+      const timeline: TimelineEvent[] = [{ timestamp: 1000, type: 'tool_call', data }];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.violations).toHaveLength(0);
+    });
+
+    it.each([
+      { label: 'empty timeline', timeline: [] },
+      { label: 'direct read', timeline: [createToolCallEvent('read', { path: 'README.md' }, 1000)] },
+    ])(
+      'passes with $label when delegation is forbidden',
+      async ({ timeline }) => {
+        // Arrange
+        const evaluator = new BehaviorEvaluator({ shouldDelegate: false });
+
+        // Act
+        const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+        // Assert
+        expect(result.passed).toBe(true);
+        expect(result.violations).toHaveLength(0);
+      }
+    );
+
+    it.each(['task', 'subagent', 'read'])('leaves %s unrestricted when the flag is unspecified', async tool => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({});
+      const timeline = [createToolCallEvent(tool, {}, 1000)];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.violations).toHaveLength(0);
+    });
+
     it('should pass when delegation is used', async () => {
       const evaluator = new BehaviorEvaluator({
         shouldDelegate: true,
@@ -416,6 +482,117 @@ describe('BehaviorEvaluator', () => {
 
       expect(result.passed).toBe(false);
       expect(result.violations.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('delegation tool aliases', () => {
+    // Only task and subagent are interchangeable; unrelated tools stay exact.
+    const aliasPairs = [
+      { expected: 'task', actual: 'subagent' },
+      { expected: 'subagent', actual: 'task' },
+    ];
+
+    it.each(aliasPairs)('satisfies required $expected with $actual', async ({ expected, actual }) => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({ mustUseTools: [expected] });
+      const timeline = [createToolCallEvent(actual, {}, 1000)];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.violations).toHaveLength(0);
+    });
+
+    it.each(aliasPairs)('rejects forbidden $expected through $actual', async ({ expected, actual }) => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({ mustNotUseTools: [expected] });
+      const timeline = [createToolCallEvent(actual, {}, 1000)];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(false);
+      expect(result.violations).toEqual([
+        expect.objectContaining({ type: 'forbidden-tool-used', severity: 'error' }),
+      ]);
+    });
+
+    it.each(aliasPairs)('satisfies an alternative set containing $expected with $actual', async ({ expected, actual }) => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({ mustUseAnyOf: [[expected, 'read'], ['write']] });
+      const timeline: TimelineEvent[] = [
+        { timestamp: 1000, type: 'tool_call', data: { state: { tool: actual, input: {} } } },
+        createToolCallEvent('read', {}, 2000),
+      ];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.violations).toHaveLength(0);
+    });
+
+    it.each(aliasPairs)('still requires the other members of a set containing $expected', async ({ expected, actual }) => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({ mustUseAnyOf: [[expected, 'read'], ['write']] });
+      const timeline = [createToolCallEvent(actual, {}, 1000)];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(false);
+      expect(result.violations[0].type).toBe('missing-required-tool-set');
+    });
+
+    it.each(['task', 'subagent'])('does not satisfy required %s with an unrelated tool', async tool => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({ mustUseTools: [tool] });
+      const timeline = [createToolCallEvent('read', {}, 1000)];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(false);
+      expect(result.violations[0].type).toBe('missing-required-tool');
+    });
+
+    it('does not broaden unrelated required, forbidden, or alternative tools', async () => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({
+        mustUseTools: ['shell'],
+        mustNotUseTools: ['shell'],
+        mustUseAnyOf: [['shell']],
+      });
+      const timeline = [createToolCallEvent('bash', {}, 1000)];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(false);
+      expect(result.violations.map(violation => violation.type)).toEqual([
+        'missing-required-tool',
+        'missing-required-tool-set',
+      ]);
+    });
+
+    it('permits unrelated tools when delegation aliases are forbidden', async () => {
+      // Arrange
+      const evaluator = new BehaviorEvaluator({ mustNotUseTools: ['task', 'subagent'] });
+      const timeline = [createToolCallEvent('read', {}, 1000)];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.violations).toHaveLength(0);
     });
   });
 

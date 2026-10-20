@@ -51,19 +51,19 @@ export class DelegationEvaluator extends BaseEvaluator {
     // Estimate time required
     const estimatedMinutes = this.estimateTimeRequired(fileCount, complexityScore);
 
-    // Get delegation tool calls (task tool)
-    const delegationCalls = this.getToolCallsByName(timeline, 'task');
+    // Keep both legacy task and current subagent events in timeline order.
+    const delegationCalls = this.getDelegationTools(timeline);
     const didDelegate = delegationCalls.length > 0;
     
     // Add evidence for each task tool call
     if (didDelegate) {
       delegationCalls.forEach((call, index) => {
-        const input = call.data?.input || {};
+        const input = call.data?.input || call.data?.state?.input || {};
         evidence.push(this.createEvidence(
           'task-tool-call',
           `Task tool call #${index + 1}: ${input.description || 'No description'}`,
           {
-            subagent_type: input.subagent_type,
+            subagent_type: input.agent || input.subagent_type,
             description: input.description,
             prompt: input.prompt,
             timestamp: call.timestamp
@@ -213,11 +213,14 @@ export class DelegationEvaluator extends BaseEvaluator {
           'delegation-calls',
           `${delegationCalls.length} delegation calls made`,
           {
-            delegations: delegationCalls.map(call => ({
-              timestamp: call.timestamp,
-              agent: call.data?.input?.subagent_type,
-              prompt: call.data?.input?.prompt?.substring(0, 100)
-            }))
+            delegations: delegationCalls.map(call => {
+              const input = call.data?.input || call.data?.state?.input || {};
+              return {
+                timestamp: call.timestamp,
+                agent: input.agent || input.subagent_type,
+                prompt: input.prompt?.substring(0, 100)
+              };
+            })
           }
         )
       );

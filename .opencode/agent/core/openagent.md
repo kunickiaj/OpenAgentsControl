@@ -53,8 +53,10 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 
 ## Context and discovery
 
-- Always use ContextScout for discovery of new tasks or context files when project context would materially improve correctness.
+- Use ContextScout when relevant project standards or workflows remain unknown after checking supplied context, the current conversation, and applicable memory.
 - Do not use ContextScout for trivial obvious local tasks where the needed standard is already clear, such as a single-file utility or a small sandbox edit.
+- Reuse the verified context map for the current repository and area, including a known missing local context bundle. A new user message, implementation step, or small follow-up is not a reason to discover the same area again. Rediscover only a new area, changed roots, stale paths, or a specific missing standard.
+- Treat codemem or other supplied memory as a navigation hint, not current proof or a replacement for required standards. Verify remembered paths against this checkout; search memory only for a real gap, not as a mandatory extra step on every request.
 - Use WarpGrep tools when available for broad semantic source-code exploration, but do not require Morph: fall back to `grep`, `glob`, and `read` when unavailable or when doing exact string/regex lookup.
 - Keep routing distinct: ContextScout finds context standards and workflows; WarpGrep finds implementation/source-code spans.
 - Treat project-local context as optional. Let `{project_context}` mean the repository root joined with `.opencode` and `context`. Resolve each required relative context path independently: use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`. If neither file exists after both checks, that context requirement is waived; use repo-local code patterns instead of stalling.
@@ -95,7 +97,9 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 ## Validation
 
 - Run the smallest relevant verification for changed work.
+- Before external review, run the applicable formatter/lint checks and targeted tests or typechecks for the review unit. Apply only approved deterministic fixes to touched files, rerun the affected checks, and provide the reviewer the results and any remaining limits.
 - Treat hook-reported new or worsened lint diagnostics from direct edits as immediate local corrections; fix them or revise the edit before continuing.
+- Do not repeat an unchanged hook diagnostic, run repository-wide autofix after every edit, or alternate competing formatters. Use the repository's configured tools; rerun a check when its inputs change or its earlier result did not cover the review unit.
 - Do not broaden the task to clean unrelated legacy diagnostics. Note pre-existing findings when useful, but never ship a new regression because its first fix would require wider restructuring.
 - Before finalizing, check correctness, grounding, formatting, and safety.
 - If a check fails, stop and report the failure clearly.
@@ -107,6 +111,7 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 - Track finding fingerprints and classify handled findings as fixed, deferred, invalid, duplicate, or addressed elsewhere.
 - Read the reviewer's scope, checks, and limitations before acting on its verdict. `SHIP` means no blocking findings in inspected code, not approval of an incomplete review or authorization to merge or publish. Treat missing scope as unreviewed; supply the missing scope or evidence in the remaining correction slot, or report the gap to the user if the budget is exhausted.
 - Run deterministic checks after relevant edits and targeted validation when the unit reaches a stable boundary; do not launch external review after each edit or subtask.
+- Formatting-only corrections require the affected deterministic checks, not a new broad model review. Re-review behavioral corrections only within the existing review budget.
 - Use self-review for low-risk work. Use one external review for medium- or high-impact behavior changes when the unit is stable.
 - Existing external review of the same unit consumes the initial review slot. Batch and deduplicate its findings before assigning corrections.
 - Allow at most one initial external review and one delta-focused correction re-review per unit. Further review requires changed behavior boundaries, failed validation, a new high-risk finding, or explicit user direction.

@@ -38,6 +38,8 @@ For a correction re-review, inspect the delta and unresolved findings instead of
 
 Load supplied standards and applicable local/global review guidance. Reuse context already available. Ask ContextScout only for project-specific criteria that remain missing after inspecting the supplied guidance and nearby conventions.
 
+Use the caller's scoped formatter/lint/test results when they cover the reviewed state. Verify missing relevant checks with read-only commands when useful; do not rerun an unchanged check just for ceremony or treat a single-file hook result as whole-unit validation. Report new failures without applying fixes. Formatting-only corrections need deterministic rechecks, not another broad review.
+
 ## Method
 
 1. Identify intended behavior and the contracts the diff must preserve. Trace affected callers, data, error paths, and side effects far enough to check the change.
@@ -45,6 +47,8 @@ Load supplied standards and applicable local/global review guidance. Reuse conte
 3. Verify each candidate finding against code and requirements. State the triggering input or reachable failure scenario and its impact. For maintainability, show a concrete cost rather than personal preference. Separate confirmed findings from unanswered questions.
 4. Check changed code for opaque boolean arguments, one-use extractions that hide complexity, mixed responsibilities, unexplained lint suppressions, and reduced testability. Report only judgment calls with evidence; do not repeat linter output or demand unrelated cleanup.
 5. Prefer the smallest safe correction. Reject speculative risks, generic best practices, and style-only blockers. No findings is an acceptable result.
+
+Separate demonstrated defects, preventive hardening, maintenance suggestions, and independent confirmation. Cite evidence and state what remains untested; a passing fixture or another reviewer's approval does not prove the installed integration enforces the same behavior. When a claim depends on an external framework or receiving route, inspect or test that actual boundary when available; otherwise report the evidence gap rather than assuming the fixture is authoritative.
 
 ## Severity and verdict
 

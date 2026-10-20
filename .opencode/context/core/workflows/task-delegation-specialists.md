@@ -3,6 +3,8 @@
 
 **Purpose**: Guidance on when to delegate to specific specialist agents. Pass standards, reference paths, scope, and acceptance criteria inline or through an existing task context; do not require a new session file for routine local work.
 
+Supply known standards, mapped or missing context, scope, acceptance criteria, and validation results rather than making each specialist rediscover them.
+
 ---
 
 ## OpenFrontendSpecialist - UI/UX Design
@@ -77,6 +79,7 @@ subagent({
     Exact diff or head: {diff or head}
     Pass type: {initial or correction}
     Prior finding fingerprints and status: {findings or none}
+    Completed deterministic checks and limits: {results}
     Standards: .opencode/context/core/workflows/code-review.md, {other standards paths}
     Reference files: {file list}
     Acceptance criteria: {requirements}

@@ -47,6 +47,14 @@ Each finding includes:
 
 If one of these cannot be stated, record the concern as a question or omit it. Do not require positive observations, and do not force reports into a fixed number of findings.
 
+## Preflight and Evidence
+
+- The author runs applicable scoped formatter/lint checks and targeted tests or typechecks before external review. Approved deterministic fixes stay limited to touched files and are followed by the affected checks.
+- Include the exact review unit, baseline, checked state, commands/results, and known validation limits in the handoff. A per-edit hook result covers only its reported inputs; do not infer whole-unit validation from it.
+- Reuse current, relevant check results. Do not repeat unchanged diagnostics or run whole-repository autofix for a small change. If a result is stale, incomplete, or contradicted by the diff, run the smallest missing read-only check.
+- Report unfixed failures, but do not spend another broad review pass confirming a formatting-only correction. Rerun the affected deterministic checks; behavioral corrections retain the existing review budget.
+- Distinguish demonstrated correctness defects from preventive hardening, maintenance suggestions, and confirmation. Verify real framework/receiver behavior when a claim depends on it; fixtures and repeated reviewer agreement are not proof of an untested integration boundary.
+
 ## Review process
 
 1. Identify the review unit, stable baseline, changed files, applicable requirements, and validation already run.

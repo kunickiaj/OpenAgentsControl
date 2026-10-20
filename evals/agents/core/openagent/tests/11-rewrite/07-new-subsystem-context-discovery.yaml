@@ -1,0 +1,42 @@
+id: rewrite-new-subsystem-context-discovery
+name: "Rewrite: Discover Context For A New Subsystem"
+description: |
+  A mapping for general documentation does not cover an unfamiliar evaluator
+  subsystem. Missing subsystem context should trigger focused discovery.
+  Tool expectations check delegation, not the selected subagent identity.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      This is a read-only task in the current OpenAgentsControl checkout.
+      The only context mapped so far is
+      .opencode/context/core/standards/documentation.md.
+      Read that exact file and summarize its guidance for a short README update.
+      Do not edit files or create temporary/session artifacts.
+  - text: |
+      The task has changed: now identify the project-specific testing conventions
+      and context files for the unfamiliar evaluator subsystem under
+      evals/framework/src/evaluators. The earlier documentation-only map does not
+      cover this area, and no testing context has been supplied or verified.
+      Discover the missing subsystem context, then report the relevant paths.
+      Keep all work read-only; do not implement
+      tests, run model evaluations, or create temporary/session artifacts.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [task]
+  mustNotUseTools: [write, edit]
+  shouldDelegate: true
+  minToolCalls: 1
+
+timeout: 120000
+
+tags:
+  - rewrite
+  - context-discovery
+  - contextscout
+  - multi-turn

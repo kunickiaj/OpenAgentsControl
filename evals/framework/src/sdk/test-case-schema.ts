@@ -74,7 +74,8 @@ export const BehaviorExpectationSchema = z.object({
   expectedContextFiles: z.array(z.string()).optional(),
 
   /**
-   * Agent should delegate to specialized subagent
+   * true suggests delegation (missing calls warn); false forbids delegation.
+   * Omit to leave routing unrestricted. Both task and subagent are recognized.
    */
   shouldDelegate: z.boolean().optional(),
 

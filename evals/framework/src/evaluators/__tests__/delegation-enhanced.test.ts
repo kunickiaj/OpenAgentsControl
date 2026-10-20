@@ -25,6 +25,89 @@ describe('DelegationEvaluator - Enhanced Features', () => {
     };
   });
 
+  describe('Delegation Tool Compatibility', () => {
+    // Keep legacy events while accepting the current tool and agent argument.
+    const delegationEvents = [
+      { label: 'legacy task', data: { tool: 'task', input: { subagent_type: 'ContextScout' } } },
+      { label: 'task with modern agent', data: { tool: 'task', input: { agent: 'ContextScout' } } },
+      { label: 'modern subagent', data: { tool: 'subagent', input: { agent: 'ContextScout' } } },
+      { label: 'subagent with legacy agent', data: { tool: 'subagent', input: { subagent_type: 'ContextScout' } } },
+      { label: 'nested task', data: { state: { tool: 'task', input: { subagent_type: 'ContextScout' } } } },
+      { label: 'nested subagent', data: { state: { tool: 'subagent', input: { agent: 'ContextScout' } } } },
+    ];
+
+    it.each(delegationEvents)('recognizes $label and reports the delegated agent', async ({ data }) => {
+      // Arrange
+      const timeline: TimelineEvent[] = [{ timestamp: 1000, type: 'tool_call', data }];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.metadata?.didDelegate).toBe(true);
+      expect(result.evidence).toContainEqual(expect.objectContaining({
+        type: 'delegation-calls',
+        data: expect.objectContaining({
+          delegations: [expect.objectContaining({ agent: 'ContextScout', timestamp: 1000 })],
+        }),
+      }));
+    });
+
+    it.each(['flat', 'nested'])('prefers current agent consistently across %s delegation evidence', async shape => {
+      // Arrange - Conflicting legacy input must not override the current agent.
+      const input = { agent: 'ContextScout', subagent_type: 'CoderAgent' };
+      const call = { tool: 'subagent', input };
+      const data = shape === 'nested' ? { state: call } : call;
+      const timeline: TimelineEvent[] = [{ timestamp: 1000, type: 'tool_call', data }];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.evidence).toContainEqual(expect.objectContaining({
+        type: 'delegation-calls',
+        data: expect.objectContaining({
+          delegations: [expect.objectContaining({ agent: 'ContextScout' })],
+        }),
+      }));
+      expect(result.evidence).toContainEqual(expect.objectContaining({
+        type: 'task-tool-call',
+        data: expect.objectContaining({ subagent_type: 'ContextScout' }),
+      }));
+    });
+
+    it.each(['read', 'task_status'])('does not mistake %s with an agent argument for delegation', async tool => {
+      // Arrange
+      const timeline: TimelineEvent[] = [{
+        timestamp: 1000,
+        type: 'tool_call',
+        data: { tool, input: { agent: 'ContextScout' } },
+      }];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.metadata?.didDelegate).toBe(false);
+      expect(result.evidence.some(evidence => evidence.type === 'delegation-calls')).toBe(false);
+    });
+
+    it('does not treat a non-tool event mentioning subagent as delegation', async () => {
+      // Arrange
+      const timeline: TimelineEvent[] = [{
+        timestamp: 1000,
+        type: 'assistant_message',
+        data: { tool: 'subagent', input: { agent: 'ContextScout' }, text: 'A subagent is not needed.' },
+      }];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.metadata?.didDelegate).toBe(false);
+    });
+  });
+
   describe('Complexity Scoring', () => {
     it('should trigger delegation for high complexity even with < 4 files', async () => {
       // 3 files but high complexity (multiple types, dirs, tests, config)

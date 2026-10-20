@@ -98,9 +98,9 @@ All files are in `.opencode/context/core/` with organized subfolders:
 - Evaluating architecture
 
 ### .opencode/context/core/workflows/task-delegation-basics.md
-- Delegating to general agent
-- Creating task context
-- Multi-file coordination
+- Choosing direct work versus specialist delegation
+- Reusing mapped context and supplying an inline handoff
+- Review preflight and Beads task ownership
 
 ### .opencode/context/core/workflows/feature-breakdown.md
 - Tasks with 4+ files

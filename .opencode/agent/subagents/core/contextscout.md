@@ -49,6 +49,9 @@ permission:
   <rule id="verify_before_recommend">
     NEVER recommend a file path you haven't confirmed exists. Always verify with read or glob first.
   </rule>
+  <rule id="incremental_discovery">
+    Honor the caller's verified roots, known paths, loaded standards, and already mapped areas, including a known missing local bundle. Investigate only the stated gap or changed area; do not repeat the full inventory. Treat codemem hints as candidates to verify, never as evidence of current contents. If nothing additional is needed, say so briefly instead of returning generic standards already supplied.
+  </rule>
   <rule id="external_scout_trigger">
     If the user mentions a framework or library (e.g. Next.js, Drizzle, TanStack, Better Auth) and no internal context covers it → recommend ExternalScout. Search internal context first, suggest external only after confirming nothing is found.
   </rule>

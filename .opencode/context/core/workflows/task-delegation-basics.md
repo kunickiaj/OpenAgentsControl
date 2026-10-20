@@ -8,6 +8,13 @@ Delegate when a specialist adds useful independent expertise or the work can pro
 
 Routine local work does not need a session file, an approval ceremony, or a planning artifact before delegation. Ask for approval only when the requested action needs it because it is risky, irreversible, or its scope is genuinely unclear.
 
+## Reuse mapped context
+
+- Use supplied context and the current conversation before discovery. Reuse the verified map for the same repository and area, including a known missing local bundle.
+- A new user message, a new implementation step, or a small follow-up does not invalidate that map. Call ContextScout for a specific missing standard, an unfamiliar area, changed roots, or stale/unavailable paths, not to confirm that nothing additional exists.
+- Use relevant codemem or other supplied memory as a navigation hint. Verify remembered paths in the current checkout; memory does not replace required standards or prove current code/configuration. Do not add a compulsory memory search to every request.
+- Pass the known context, missing information, and roots to a discovery agent so it searches only the gap. Fresh workers may still need their own exact-path reads of the required contents.
+
 ## Give the agent usable context
 
 Pass these details inline, or point to an existing task context that already contains them:
@@ -40,6 +47,10 @@ When Beads is available, use it for durable task identity, dependencies, assignm
 Legacy `.tmp/tasks` records are read-only migration input. Do not update, archive, or create records there.
 
 ## Review delegation
+
+Run applicable scoped formatter/lint checks and targeted tests or typechecks before external review. Apply only approved deterministic fixes to touched files and rerun affected checks. Give the reviewer the checked state, results, and limits rather than relying on a single-file hook as proof of whole-unit validation.
+
+Formatting-only corrections need deterministic rechecks, not another broad model review. Behavioral corrections retain the existing review budget.
 
 Name the review unit and baseline, then pass the review standard and the applicable requirements. The parent agent owns the review budget and decides whether a correction review is needed. See [code-review.md](./code-review.md).
 
