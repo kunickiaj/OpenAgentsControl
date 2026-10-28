@@ -81,6 +81,6 @@ The parent agent owns the review budget. A review unit receives at most one init
 REQUEST CHANGES
 ```
 
-The example structure is optional; the verdict contract is not. Label each finding `blocking` or `non-blocking`, keep optional suggestions separate, and report checks actually run and any limitations before the final line. End with exactly one bare `REQUEST CHANGES` when blockers remain, or `SHIP` when none were found in the inspected scope.
+The example structure is optional; the verdict contract is not. Label each finding `blocking` or `non-blocking`, keep optional suggestions separate, and report checks actually run before the final line. Report limitations only when the review is incomplete. End with exactly one bare `REQUEST CHANGES` when blockers remain, or `SHIP` when none were found in the inspected scope.
 
 When there are no blockers, say none were found in the reviewed scope; do not invent optional suggestions. If scope or evidence is insufficient, mark the review incomplete and explain that `SHIP` is not approval of the requested scope. The parent must read these limitations before acting on a verdict.

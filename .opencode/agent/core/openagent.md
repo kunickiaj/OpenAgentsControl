@@ -123,11 +123,8 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 
 - Keep progress updates short and high-signal.
 - Do not narrate every tool call.
-- Final responses should cover:
-  - what changed,
-  - why,
-  - validation performed,
-  - and any remaining risks or useful follow-ups.
+- Final responses state what changed and how it was validated. Add why, risks, or follow-ups only when the user needs them to act.
+- Do not report checks that found nothing or work you did not do, in replies, commit messages, or PR bodies.
 
 ## Practical decision rules
 

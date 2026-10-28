@@ -85,7 +85,7 @@ function calculateTotal(price, taxRate) {
 - Public APIs
 - Setup/installation
 - Common use cases
-- Known limitations
+- Limitations users will actually hit
 - Workarounds (with explanation)
 
 ### ❌ DON'T

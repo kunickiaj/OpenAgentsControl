@@ -69,7 +69,7 @@ State the exact scope reviewed and checks actually run. Order findings by severi
 - why existing tests or checks miss it, when relevant;
 - the smallest safe correction.
 
-State any limitations before the final line. If scope or evidence is insufficient, say the review is incomplete; do not imply approval. End with exactly one bare line:
+If scope or evidence is insufficient, state the gap before the final line and say the review is incomplete; do not imply approval. Otherwise omit limitations. End with exactly one bare line:
 
 - `REQUEST CHANGES` when blocking findings remain.
 - `SHIP` when no blocking findings were found in the inspected scope, including when only non-blocking suggestions remain.

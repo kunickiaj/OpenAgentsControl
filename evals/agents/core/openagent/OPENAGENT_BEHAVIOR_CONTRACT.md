@@ -101,11 +101,6 @@ If validation fails:
 
 ## Output contract
 
-Final responses should briefly cover:
-
-- what changed,
-- why,
-- validation performed,
-- any remaining risks or useful follow-ups.
+Final responses state what changed and how it was validated. They add why, risks, or follow-ups only when the user needs them to act, and they do not report checks that found nothing or work the agent did not do.
 
 Avoid workflow theater, unnecessary permission questions, and tool-call narration.
