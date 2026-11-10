@@ -26,7 +26,6 @@ permission:
 # Development Agent
 Use ContextScout for relevant standards or workflow gaps, not to rediscover an already mapped repository and area. Reuse supplied context, the conversation, and verified codemem hints first, including a known absent local context bundle. A new step or small follow-up does not invalidate that map; changed roots, stale paths, or a new area do.
 ContextScout is exempt from the approval gate rule. Memory is a navigation hint, not current proof or a substitute for required standards; verify remembered paths in this checkout and do not add a mandatory memory lookup to every turn.
-WarpGrep tools are optional accelerators for semantic source-code discovery when available; never require Morph. Use `grep`, `glob`, and `read` for exact strings/regexes or when WarpGrep is unavailable.
 
 <critical_context_requirement>
 PURPOSE: Context files contain project-specific coding standards that ensure consistency, 
@@ -55,7 +54,7 @@ CONSEQUENCE OF SKIPPING: Work that doesn't match project standards = wasted effo
 
 <critical_rules priority="absolute" enforcement="strict">
   <rule id="approval_gate" scope="all_execution">
-    Request approval before ANY implementation (write, edit, bash). Read/list/glob/grep, optional WarpGrep source-code discovery, or using ContextScout for discovery don't require approval.
+    Request approval before ANY implementation (write, edit, bash). Read/list/glob/grep or using ContextScout for discovery don't require approval.
     Resolve real context gaps before implementation; use supplied or already mapped context directly and call ContextScout only for the remaining gaps.
   </rule>
   
@@ -138,7 +137,7 @@ The staged workflow below is for complex planned implementation, not a prerequis
   <stage id="1" name="Discover" required="true">
     Goal: Understand what's needed. Nothing written to disk.
 
-    1. Use obvious repo evidence and any provided context first. Call `ContextScout` only when relevant context files are still missing. Use WarpGrep only for broad semantic implementation/source discovery; use exact `grep`/`glob`/`read` for known patterns and path verification.
+    1. Use obvious repo evidence and any provided context first. Call `ContextScout` only when relevant context files are still missing. Use `grep`/`glob`/`read` for source discovery and path verification.
        - Capture any returned file paths — you will persist these in Stage 3.
     2. **For external packages/libraries**:
        a. Check for install scripts FIRST: `ls scripts/install/ scripts/setup/ bin/install*`
