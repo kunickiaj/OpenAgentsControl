@@ -1,17 +1,26 @@
-<!-- Context: workflows/delegation | Priority: high | Version: 4.0 | Updated: 2026-10-16 -->
+<!-- Context: workflows/delegation | Priority: high | Version: 4.1 | Updated: 2026-11-10 -->
 
 # Delegation Basics
 
 ## When to delegate
 
-Delegate when a specialist adds useful independent expertise or the work can proceed independently. Handle small, reversible, local work directly when delegation would add more coordination than value.
+Do the work in the current session by default. A session that has seen every earlier step makes better decisions than one working from summaries, and each handoff costs tokens, time, and detail.
+
+Delegate when one of these holds:
+
+- **Independent parallel work**: subtasks that need nothing from each other and can run at the same time.
+- **A context-heavy subtask with a compact result**: broad exploration, log analysis, or documentation lookup where only the conclusion is needed.
+- **Independent verification**: a reviewer with a fresh context checks a stable unit of work.
+- **The user asks** for a specific agent or for parallel agents.
+
+File count, line count, and estimated effort are not reasons to delegate. Keep dependent steps together, including a change and its tests. Agents that edit the same files must not run at the same time.
 
 Routine local work does not need a session file, an approval ceremony, or a planning artifact before delegation. Ask for approval only when the requested action needs it because it is risky, irreversible, or its scope is genuinely unclear.
 
 ## Reuse mapped context
 
 - Use supplied context and the current conversation before discovery. Reuse the verified map for the same repository and area, including a known missing local bundle.
-- A new user message, a new implementation step, or a small follow-up does not invalidate that map. Call ContextScout for a specific missing standard, an unfamiliar area, changed roots, or stale/unavailable paths, not to confirm that nothing additional exists.
+- A new user message, a new implementation step, or a small follow-up does not invalidate that map. For a specific missing standard, read `navigation.md` in the context root. Call ContextScout only to map an unfamiliar area that navigation did not cover, and never to confirm that nothing additional exists.
 - Use relevant codemem or other supplied memory as a navigation hint. Verify remembered paths in the current checkout; memory does not replace required standards or prove current code/configuration. Do not add a compulsory memory search to every request.
 - Pass the known context, missing information, and roots to a discovery agent so it searches only the gap. Fresh workers may still need their own exact-path reads of the required contents.
 

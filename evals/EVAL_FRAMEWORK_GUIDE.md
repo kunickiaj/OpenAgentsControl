@@ -65,7 +65,7 @@ Validates that OpenCode agents follow their defined rules and behaviors through 
 |----------------|----------------|
 | **Approval Gate** | Agent asks for approval before executing risky operations |
 | **Context Loading** | Agent loads required context files before execution |
-| **Delegation** | Agent delegates complex tasks (4+ files) to task-manager |
+| **Delegation** | Reports change size and delegation calls. Tests set the expected route with `behavior.shouldDelegate` |
 | **Tool Usage** | Agent uses correct tools for the task |
 | **Behavior** | Agent follows expected behavior patterns |
 | **Subagent** | Subagents execute correctly when delegated |
@@ -412,7 +412,7 @@ cd evals/results
 Violations Detected:
   1. [error] missing-required-tool: Required tool 'write' was not used
   2. [error] missing-required-patterns: File missing: export function
-  3. [warning] over-delegation: Delegated for < 4 files (acceptable)
+  3. [warning] missing-delegation: Agent should have delegated to a subagent
 ```
 
 **Severity Levels:**

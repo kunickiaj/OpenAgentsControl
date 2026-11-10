@@ -1,4 +1,4 @@
-<!-- Context: workflows/delegation-specialists | Priority: high | Version: 1.1 | Updated: 2026-10-16 -->
+<!-- Context: workflows/delegation-specialists | Priority: high | Version: 1.2 | Updated: 2026-11-10 -->
 # When to Delegate to Specialists
 
 **Purpose**: Guidance on when to delegate to specific specialist agents. Pass standards, reference paths, scope, and acceptance criteria inline or through an existing task context; do not require a new session file for routine local work.
@@ -35,13 +35,17 @@ subagent({
 
 ---
 
-## TestEngineer - Test Authoring
+## TestEngineer - Independent Test Work
+
+Whoever implements a change writes and runs its tests. Use TestEngineer only for test work that stands apart from an in-progress change.
 
 **✅ DELEGATE when:**
-- Writing comprehensive test suites
-- TDD workflows (tests before implementation)
-- Complex test scenarios (edge cases, error handling)
-- Integration tests across multiple components
+- Reproducing a reported bug before a fix is designed
+- Adding coverage for existing behavior that is not being changed
+- Verifying built behavior, such as a browser or integration check, while other work continues
+
+**❌ KEEP with the implementer:**
+- Tests for a change that is being written now
 
 **Delegation pattern:**
 ```javascript
@@ -93,9 +97,10 @@ subagent({
 ## CoderAgent - Focused Implementation
 
 **✅ DELEGATE when:**
+- An implementation slice needs little from the rest of the change and can run in parallel with other work
 - Implementing atomic subtasks from TaskManager
-- Isolated feature work (single component/module)
-- Following specific implementation specs
+
+CoderAgent writes and runs the tests for its slice. Keep tightly coupled edits in one session.
 
 **Delegation pattern:**
 ```javascript
@@ -119,10 +124,12 @@ subagent({
 | Scenario | Agent | Why |
 |----------|-------|-----|
 | New landing page | OpenFrontendSpecialist | UI and accessibility expertise |
-| Test suite for auth | TestEngineer | Comprehensive coverage |
-| Security review | CodeReviewer | Security focus |
-| Single API endpoint | CoderAgent | Focused implementation |
-| Complex multi-file feature | TaskManager → CoderAgent | Breakdown then implement |
+| Feature and its tests | Current session | The implementer owns its tests |
+| Tightly coupled multi-file change | Current session | Shared context across the edits |
+| Coverage for existing, unchanged auth code | TestEngineer | Independent of work in progress |
+| Security review | CodeReviewer | Independent verification |
+| Independent API endpoint alongside other work | CoderAgent | Parallel slice with its own tests |
+| Feature with independent slices and real dependencies | TaskManager → CoderAgent per slice | Breakdown then parallel implementation |
 
 ---
 

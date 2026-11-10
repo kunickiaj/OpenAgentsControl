@@ -1,6 +1,6 @@
 ---
 name: ContextScout
-description: Discovers and recommends context files from .opencode/context/ ranked by priority. Suggests ExternalScout when a framework/library is mentioned but not found internally.
+description: Maps context files for an unfamiliar area when reading navigation.md directly did not answer the question. Returns verified paths ranked by priority and suggests ExternalScout when a library has no internal coverage.
 mode: subagent
 permission:
   read:

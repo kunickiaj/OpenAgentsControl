@@ -1,0 +1,33 @@
+id: rewrite-direct-context-discovery
+name: "Rewrite: Find Standards By Reading Context Navigation"
+description: |
+  Standards listed in context navigation are found with direct reads. A lookup
+  this small gains nothing from a subagent handoff, so delegation is an error.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Find the project context files that define coding and documentation standards for this repo.
+      Report their paths. This is a read-only task.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseTools: [read]
+  mustNotUseTools: [task, subagent, write, edit]
+  shouldDelegate: false
+  expectedResponse:
+    contains:
+      - code-quality.md
+      - documentation.md
+  minToolCalls: 1
+
+timeout: 120000
+
+tags:
+  - rewrite
+  - context-discovery
+  - direct

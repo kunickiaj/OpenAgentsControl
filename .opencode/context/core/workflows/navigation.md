@@ -17,7 +17,7 @@
 | `external-libraries-workflow.md` | External library process | ⭐⭐⭐⭐ | External packages |
 | `external-libraries-scenarios.md` | Common scenarios | ⭐⭐⭐ | Examples needed |
 | `external-libraries-faq.md` | Troubleshooting | ⭐⭐⭐ | Errors/questions |
-| `feature-breakdown.md` | Breaking down features | ⭐⭐⭐⭐ | 4+ files, complex tasks |
+| `feature-breakdown.md` | Breaking down features | ⭐⭐⭐⭐ | Complex dependencies, independent slices |
 | `session-management.md` | Managing sessions | ⭐⭐⭐ | Session cleanup |
 | `design-iteration-overview.md` | Design workflow overview | ⭐⭐⭐⭐ | Starting design work |
 | `design-iteration-plan-file.md` | Design plan template | ⭐⭐⭐⭐ | Creating design plan |

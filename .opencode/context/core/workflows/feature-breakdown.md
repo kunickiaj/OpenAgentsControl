@@ -4,7 +4,7 @@
 
 ## Quick Reference
 
-**When to Use**: 4+ files, >60 min effort, complex dependencies, multi-step coordination
+**When to Use**: complex dependencies, multi-step coordination, or work that splits into independently verifiable slices. File count alone is not a trigger.
 
 **Process**: Scope → Phases → Small Tasks (1-2h) → Dependencies → Estimates
 
@@ -19,9 +19,8 @@ Framework for breaking down complex tasks into manageable, sequential subtasks.
 
 ## When to Use
 Reference this when:
-- Task involves 4+ files
-- Estimated effort >60 minutes
 - Complex dependencies exist
+- Work splits into independently verifiable slices
 - Multi-step coordination needed
 - User requests task breakdown
 

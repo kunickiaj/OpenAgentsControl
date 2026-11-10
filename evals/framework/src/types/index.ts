@@ -337,10 +337,8 @@ export interface ContextLoadingCheck {
  * Delegation check result
  */
 export interface DelegationCheck {
-  shouldDelegate: boolean;
   didDelegate: boolean;
   fileCount: number;
-  delegationThreshold: number;
   evidence: string[];
 }
 

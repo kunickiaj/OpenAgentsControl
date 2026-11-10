@@ -142,6 +142,10 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
     return 'unknown';
   }
 
+  private hasExplicitContextFiles(): boolean {
+    return (this.behaviorConfig?.expectedContextFiles?.length ?? 0) > 0;
+  }
+
   /**
    * Validate that the correct context file was loaded for the task type
    */
@@ -154,7 +158,11 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
     actual: string[];
     matchedFile?: string;
   } {
-    const expectedFiles = this.CONTEXT_FILE_MAP[taskType];
+    // A test's explicit list overrides the task type detected from the prompt.
+    const hasExplicitFiles = this.hasExplicitContextFiles();
+    const expectedFiles = hasExplicitFiles
+      ? this.behaviorConfig?.expectedContextFiles ?? []
+      : this.CONTEXT_FILE_MAP[taskType];
     const actualFiles = contextReads.map(r => r.filePath);
     
     // Bash-only doesn't require specific context
@@ -168,7 +176,7 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
     }
     
     // Unknown tasks - any context file is acceptable
-    if (taskType === 'unknown' || expectedFiles.length === 0) {
+    if (!hasExplicitFiles && (taskType === 'unknown' || expectedFiles.length === 0)) {
       return {
         passed: actualFiles.length > 0,
         expected: ['any context file'],
@@ -393,7 +401,7 @@ export class ContextLoadingEvaluator extends BaseEvaluator {
           }
         )
       );
-    } else if (!contextValidation.passed && taskType !== 'bash-only' && taskType !== 'unknown') {
+    } else if (!contextValidation.passed && (this.hasExplicitContextFiles() || (taskType !== 'bash-only' && taskType !== 'unknown'))) {
       // Wrong context file loaded
       violations.push(
         this.createViolation(

@@ -25,8 +25,9 @@ function loadAgent(filename: string): AgentFrontmatter {
 }
 
 describe.each([
-  { name: 'CoderAgent', filename: 'coder-agent', delegates: ['contextscout', 'externalscout', 'TestEngineer'] },
-  { name: 'TestEngineer', filename: 'test-engineer', delegates: ['contextscout', 'externalscout'] },
+  // Both agents read context navigation themselves, and CoderAgent writes its own tests.
+  { name: 'CoderAgent', filename: 'coder-agent', delegates: ['externalscout'] },
+  { name: 'TestEngineer', filename: 'test-engineer', delegates: ['externalscout'] },
 ])('$name source permission contract', ({ name, filename, delegates }) => {
   it('preserves the named subagent identity', () => {
     // Arrange: read source YAML rather than an installed or copied role.

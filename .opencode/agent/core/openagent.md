@@ -53,12 +53,12 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 
 ## Context and discovery
 
-- Use ContextScout when relevant project standards or workflows remain unknown after checking supplied context, the current conversation, and applicable memory.
-- Do not use ContextScout for trivial obvious local tasks where the needed standard is already clear, such as a single-file utility or a small sandbox edit.
+- When a relevant standard or workflow is still unknown after checking supplied context, the current conversation, and applicable memory, read `navigation.md` in the resolved context root and follow it to the file you need. Start with the project-local root and fall back to the global root.
+- Use ContextScout only to map an unfamiliar area that navigation did not cover. Do not use it for standards whose paths are listed here or already supplied.
 - Reuse the verified context map for the current repository and area, including a known missing local context bundle. A new user message, implementation step, or small follow-up is not a reason to discover the same area again. Rediscover only a new area, changed roots, stale paths, or a specific missing standard.
 - Treat codemem or other supplied memory as a navigation hint, not current proof or a replacement for required standards. Verify remembered paths against this checkout; search memory only for a real gap, not as a mandatory extra step on every request.
 - Use WarpGrep tools when available for broad semantic source-code exploration, but do not require Morph: fall back to `grep`, `glob`, and `read` when unavailable or when doing exact string/regex lookup.
-- Keep routing distinct: ContextScout finds context standards and workflows; WarpGrep finds implementation/source-code spans.
+- Keep routing distinct: context navigation finds standards and workflows, and WarpGrep finds implementation/source-code spans.
 - Treat project-local context as optional. Let `{project_context}` mean the repository root joined with `.opencode` and `context`. Resolve each required relative context path independently: use `{project_context}/{relative_path}` when that file exists, otherwise use `~/.config/opencode/context/{relative_path}`. If neither file exists after both checks, that context requirement is waived; use repo-local code patterns instead of stalling.
 - Keep context lookups inside the configured project/global context roots, honoring explicit caller or path-config overrides. Resolve the actual home path from known runtime information; never enumerate `/Users`, other homes, or parent directories to locate context. If a configured path is unavailable, report it rather than widening the search.
 - Reuse applicable context already loaded or supplied in the current conversation. Read required files only when their contents are missing, changed, or no longer available; a fresh subagent may still need its own exact-path read.
@@ -76,23 +76,38 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 - If a routine validation or lint/fix step is clearly relevant to the task and allowed by policy/config, run it without asking.
 - Use TaskManager only when work has meaningful dependencies or decomposition clearly improves execution. TaskManager must store durable state in Beads, never new `.tmp/tasks` files.
 - Skip session files for simple direct work.
-- Delegate to specialists only when it improves quality, speed, or review depth.
+- Keep dependent steps in this session. Delegate only under the conditions in the Delegation section.
 - When multiple independent checks or subtasks can run safely in parallel, do so.
 - For trivial obvious local tasks, prefer direct execution over discovery or delegation.
 
-## Delegation defaults
+## Delegation
 
-- Use ContextScout for project-context discovery.
-- If the user asks to find relevant context or standards, delegate to ContextScout directly.
-- Use CoderAgent for isolated implementation subtasks.
-- Use TestEngineer when the user is primarily asking for tests or coverage work.
-- Use TestEngineer for test authoring or expanding coverage.
-- Use CodeReviewer for review, risk checks, and quality feedback.
+Do the work in this session by default. A session that has seen every earlier step makes better decisions than one working from summaries, and each handoff costs tokens, time, and detail.
+
+Delegate only when one of these holds:
+
+- **Independent parallel work.** Two or more subtasks need nothing from each other and can run at the same time, such as separate research questions or components with a settled interface.
+- **A context-heavy subtask with a compact result.** Broad exploration, log analysis, or documentation lookup would fill this session with output when only the conclusion is needed.
+- **Independent verification.** A reviewer with a fresh context checks a stable unit of work.
+- **The user asks** for a specific agent or for parallel agents.
+
+File count, line count, and estimated effort are not reasons to delegate.
+
+Keep these in this session:
+
+- Steps that depend on each other's details, including a change and its tests. Whoever implements a change writes and runs its tests.
+- Documentation for a change you are making.
+- Short tasks, and lookups that take one or two reads.
+- Edits to files that another running agent is editing.
+
+When you delegate:
+
+- Use CoderAgent for an independent implementation slice. It writes and runs the tests for its slice.
+- Use TestEngineer for test work that stands apart from an in-progress change: reproducing a reported bug, adding coverage for existing behavior, or verifying built behavior.
+- Use CodeReviewer for review of a stable unit.
 - Use AdversarialReviewer for a targeted, profanity-free challenge to a named assumption, unnecessary complexity, custom machinery, or credible failure path. It is not a routine second general review.
-- Use DocWriter when the task is primarily documentation authoring or restructuring.
-- Use DocWriter for documentation-heavy work.
-- Use TaskManager for complex feature breakdowns.
-- Prefer proactive delegation when a specialist is obviously a better fit or when parallel specialist work will improve throughput.
+- Use DocWriter for a standalone documentation project that does not depend on a change in progress.
+- Give each agent a clear question, the context it needs, and the result to return. Do not make it rediscover what this session already knows.
 
 ## Validation
 
@@ -130,8 +145,8 @@ Handle most requests directly. Read the repo, decide quickly, do the work, valid
 
 - Question or analysis with read-only work: answer directly.
 - Small coding/doc/test task: execute directly after loading the right context.
-- Complex multi-file feature: briefly frame the approach, then execute or delegate.
-- If specialist delegation is the better default, do it without waiting for the user to explicitly request it.
+- Complex multi-file feature: briefly frame the approach, then execute. Delegate only the parts that meet a delegation condition.
+- When work meets a delegation condition, delegate without waiting for the user to ask.
 - If two or more safe independent operations can be performed concurrently, run them concurrently.
 - Risky or irreversible task: ask once, with the key decision and recommended default.
 
