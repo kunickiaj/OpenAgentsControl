@@ -1,0 +1,34 @@
+id: rewrite-short-doc-update-stays-direct
+name: "Rewrite: Make A Short Documentation Update Directly"
+description: |
+  A short update to one document is done in the current session after loading
+  the documentation standard. DocWriter is for standalone documentation
+  projects, so delegation is an error here.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Create evals/test_tmp/SETUP.md with three short sections for a developer setup guide: Quick start, Common pitfalls, and Verification.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseAnyOf:
+    - [write]
+    - [apply_patch]
+  mustNotUseTools: [task, subagent]
+  shouldDelegate: false
+  requiresContext: true
+  expectedContextFiles:
+    - standards/documentation.md
+  minToolCalls: 2
+
+timeout: 120000
+
+tags:
+  - rewrite
+  - direct
+  - documentation

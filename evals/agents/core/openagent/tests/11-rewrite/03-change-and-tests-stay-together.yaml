@@ -1,0 +1,36 @@
+id: rewrite-change-and-tests-stay-together
+name: "Rewrite: Implement A Change And Its Tests In One Session"
+description: |
+  A change and its tests depend on each other's details, so the agent that
+  writes the code also writes the tests. Splitting them across agents adds a
+  handoff without adding independence, so delegation is an error.
+
+category: developer
+agent: openagent
+
+prompts:
+  - text: |
+      Create evals/test_tmp/clamp.ts exporting clamp(value, min, max), which returns value limited to the range [min, max].
+      Add evals/test_tmp/clamp.test.ts with vitest tests for an in-range value, a value below min, and a value above max.
+      Do not install packages.
+
+approvalStrategy:
+  type: auto-approve
+
+behavior:
+  mustUseAnyOf:
+    - [write]
+    - [apply_patch]
+  mustNotUseTools: [task, subagent]
+  shouldDelegate: false
+  requiresContext: true
+  expectedContextFiles:
+    - standards/test-coverage.md
+  minToolCalls: 2
+
+timeout: 180000
+
+tags:
+  - rewrite
+  - direct
+  - tests-with-change

@@ -1,7 +1,8 @@
 /**
- * Unit tests for enhanced DelegationEvaluator
- * 
- * Tests the new complexity scoring and time estimation features
+ * Unit tests for DelegationEvaluator
+ *
+ * The evaluator reports change size and delegation calls. Size never makes
+ * delegation a requirement, so every route passes.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -109,7 +110,7 @@ describe('DelegationEvaluator - Enhanced Features', () => {
   });
 
   describe('Complexity Scoring', () => {
-    it('should trigger delegation for high complexity even with < 4 files', async () => {
+    it('scores a high-complexity direct change without requiring delegation', async () => {
       // 3 files but high complexity (multiple types, dirs, tests, config)
       const timeline: TimelineEvent[] = [
         {
@@ -140,9 +141,10 @@ describe('DelegationEvaluator - Enhanced Features', () => {
 
       const result = await evaluator.evaluate(timeline, mockSessionInfo);
       
-      // Should suggest delegation due to complexity (frontend + backend + tests)
+      // Frontend + backend + tests raise the score; the direct route still passes.
       expect(result.metadata?.complexityScore).toBeGreaterThan(0);
-      expect(result.metadata?.shouldDelegate).toBe(true);
+      expect(result.passed).toBe(true);
+      expect(result.violations).toEqual([]);
     });
 
     it('should calculate higher complexity for multiple file types', async () => {
@@ -325,8 +327,7 @@ describe('DelegationEvaluator - Enhanced Features', () => {
       );
     });
 
-    it('should trigger delegation when estimated time > 60 minutes', async () => {
-      // 5 files with complexity should exceed 60 min threshold
+    it('estimates over an hour for a five-file change without requiring delegation', async () => {
       const timeline: TimelineEvent[] = [
         {
           timestamp: 1000,
@@ -373,107 +374,62 @@ describe('DelegationEvaluator - Enhanced Features', () => {
       const result = await evaluator.evaluate(timeline, mockSessionInfo);
       
       expect(result.metadata?.estimatedMinutes).toBeGreaterThanOrEqual(60);
-      expect(result.metadata?.shouldDelegate).toBe(true);
+      expect(result.passed).toBe(true);
+      expect(result.violations).toEqual([]);
     });
   });
 
-  describe('Delegation Reasons', () => {
-    it('should provide reasons for delegation requirement', async () => {
-      const timeline: TimelineEvent[] = [
-        {
-          timestamp: 1000,
-          type: 'tool_call',
-          data: {
-            tool: 'write',
-            input: { filePath: 'file1.ts' },
-          },
-        },
-        {
-          timestamp: 2000,
-          type: 'tool_call',
-          data: {
-            tool: 'write',
-            input: { filePath: 'file2.ts' },
-          },
-        },
-        {
-          timestamp: 3000,
-          type: 'tool_call',
-          data: {
-            tool: 'write',
-            input: { filePath: 'file3.ts' },
-          },
-        },
-        {
-          timestamp: 4000,
-          type: 'tool_call',
-          data: {
-            tool: 'write',
-            input: { filePath: 'file4.ts' },
-          },
-        },
-      ];
+  describe('Routing', () => {
+    const writeFiles = (count: number): TimelineEvent[] =>
+      Array.from({ length: count }, (_, index) => ({
+        timestamp: 1000 * (index + 1),
+        type: 'tool_call' as const,
+        data: { tool: 'write', input: { filePath: `file${index + 1}.ts` } },
+      }));
 
+    it.each([1, 4, 12])('passes a direct change to %i file(s)', async fileCount => {
+      // Arrange
+      const timeline = writeFiles(fileCount);
+
+      // Act
       const result = await evaluator.evaluate(timeline, mockSessionInfo);
-      
-      expect(result.metadata?.delegationReasons).toBeDefined();
-      expect(result.metadata?.delegationReasons.length).toBeGreaterThan(0);
-      expect(result.metadata?.delegationReasons.some((r: string) => r.includes('File count'))).toBe(true);
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.violations).toEqual([]);
+      expect(result.metadata?.fileCount).toBe(fileCount);
+      expect(result.metadata?.delegationCheck.evidence).toContain('Executed directly without delegation');
     });
 
-    it('should indicate simple task when no delegation needed', async () => {
+    it('records a delegated change without scoring it differently', async () => {
+      // Arrange
       const timeline: TimelineEvent[] = [
-        {
-          timestamp: 1000,
-          type: 'tool_call',
-          data: {
-            tool: 'write',
-            input: { filePath: 'file1.ts' },
-          },
-        },
+        ...writeFiles(2),
+        { timestamp: 9000, type: 'tool_call', data: { tool: 'subagent', input: { agent: 'CodeReviewer' } } },
       ];
 
+      // Act
       const result = await evaluator.evaluate(timeline, mockSessionInfo);
-      
-      expect(result.metadata?.delegationReasons).toContain('Task is simple enough for direct execution');
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.violations).toEqual([]);
+      expect(result.metadata?.didDelegate).toBe(true);
+      expect(result.metadata?.delegationCheck.evidence).toContain('Delegation calls: 1');
     });
-  });
 
-  describe('Multiple Criteria Integration', () => {
-    it('should delegate when ANY criterion is met', async () => {
-      // Test with 3 files but high complexity
+    it('reports no route when nothing was modified', async () => {
+      // Arrange
       const timeline: TimelineEvent[] = [
-        {
-          timestamp: 1000,
-          type: 'tool_call',
-          data: {
-            tool: 'write',
-            input: { filePath: 'src/components/Button.tsx' },
-          },
-        },
-        {
-          timestamp: 2000,
-          type: 'tool_call',
-          data: {
-            tool: 'write',
-            input: { filePath: 'src/api/users.ts' },
-          },
-        },
-        {
-          timestamp: 3000,
-          type: 'tool_call',
-          data: {
-            tool: 'write',
-            input: { filePath: 'tests/Button.test.tsx' },
-          },
-        },
+        { timestamp: 1000, type: 'tool_call', data: { tool: 'read', input: { filePath: 'file1.ts' } } },
       ];
 
+      // Act
       const result = await evaluator.evaluate(timeline, mockSessionInfo);
-      
-      // Should delegate even though fileCount < 4, due to complexity
-      expect(result.metadata?.fileCount).toBeLessThan(4);
-      expect(result.metadata?.shouldDelegate).toBe(true);
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.metadata?.delegationCheck.evidence).toEqual(['No files were modified in this session']);
     });
   });
 });

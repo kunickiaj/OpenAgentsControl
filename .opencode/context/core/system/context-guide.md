@@ -103,9 +103,8 @@ All files are in `.opencode/context/core/` with organized subfolders:
 - Review preflight and Beads task ownership
 
 ### .opencode/context/core/workflows/feature-breakdown.md
-- Tasks with 4+ files
-- Estimated effort >60 minutes
 - Complex dependencies
+- Work that splits into independently verifiable slices
 
 ### .opencode/context/core/workflows/session-management.md
 - Session lifecycle

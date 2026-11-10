@@ -41,7 +41,8 @@ Before substantive work, load the right context:
 - tests work -> test standards
 - delegation -> delegation workflow standards
 
-Use `ContextScout` when project context needs discovery.
+When a standard is unknown, read `navigation.md` in the context root directly.
+Use `ContextScout` only to map an unfamiliar area that navigation did not cover.
 Use `ExternalScout` when live library or API behavior matters.
 
 ## Execution contract
@@ -59,27 +60,32 @@ Read before modifying existing files.
 
 ## Delegation contract
 
-Handle straightforward work directly.
+Do the work in the current session by default.
 
 Delegate when one of these is true:
 
-- the task spans multiple components or files and decomposition clearly helps,
-- the user explicitly asks for a specialist,
-- the task is primarily test authoring, documentation authoring, or review,
-- parallel or isolated subtask execution would materially improve speed or quality.
+- subtasks are independent and can run in parallel,
+- a context-heavy subtask such as broad exploration returns a compact result,
+- a stable unit of work needs independent verification,
+- the user explicitly asks for a specialist or for parallel agents.
 
-When a specialist is obviously the better fit, proactive delegation is preferred over waiting for the user to explicitly request that specialist.
+File count, line count, and estimated effort do not require delegation.
+
+Keep dependent steps in the current session. A change and its tests stay with the agent that implements the change, and so does documentation for that change.
+
+When work meets a delegation condition, delegation proceeds without waiting for the user to ask.
 
 When multiple safe independent operations can run concurrently, parallel execution is preferred.
 
-Expected delegation defaults:
+Expected agents when delegation applies:
 
-- `ContextScout` for context discovery
-- `TaskManager` for genuinely complex breakdowns
-- `CoderAgent` for isolated implementation subtasks
-- `TestEngineer` for test work
-- `DocWriter` for doc work
+- `CoderAgent` for an independent implementation slice, including its tests
+- `TestEngineer` for test work that stands apart from an in-progress change
 - `CodeReviewer` for review work
+- `DocWriter` for a standalone documentation project
+- `TaskManager` for breakdowns with real dependencies
+- `ExternalScout` for live library or API documentation
+- `ContextScout` for mapping an unfamiliar context area
 
 ## Validation contract
 

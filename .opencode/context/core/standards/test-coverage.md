@@ -1,4 +1,4 @@
-<!-- Context: standards/tests | Priority: critical | Version: 2.0 | Updated: 2025-01-21 -->
+<!-- Context: standards/tests | Priority: critical | Version: 2.1 | Updated: 2026-11-10 -->
 
 # Testing Standards
 
@@ -18,6 +18,8 @@
 
 **Coverage**: Critical (100%), High (90%+), Medium (80%+)
 
+**Ownership**: The agent that implements a change writes and runs its tests in the same session.
+
 ---
 
 ## Principles
@@ -26,6 +28,8 @@
 **Keep tests simple**: One assertion per test, clear names, minimal setup
 **Independent tests**: No shared state, run in any order
 **Fast and reliable**: Quick execution, no flaky tests, deterministic
+**Success and failure**: Every testable behavior gets at least one success case and one failure or edge case
+**No real network or clock**: Mock external services and avoid time-dependent assertions
 
 ## Test Structure (AAA Pattern)
 

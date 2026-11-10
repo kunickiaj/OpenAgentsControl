@@ -3,7 +3,8 @@ name: "Rewrite: Discover Context For A New Subsystem"
 description: |
   A mapping for general documentation does not cover an unfamiliar evaluator
   subsystem. Missing subsystem context should trigger focused discovery.
-  Tool expectations check delegation, not the selected subagent identity.
+  The route is unrestricted: reading context navigation directly and mapping
+  the area with ContextScout both pass when the answer names the eval context.
 
 category: developer
 agent: openagent
@@ -28,9 +29,11 @@ approvalStrategy:
   type: auto-approve
 
 behavior:
-  mustUseTools: [task]
+  mustUseTools: [read]
   mustNotUseTools: [write, edit]
-  shouldDelegate: true
+  expectedResponse:
+    contains:
+      - core-concepts/evals.md
   minToolCalls: 1
 
 timeout: 120000
@@ -38,5 +41,4 @@ timeout: 120000
 tags:
   - rewrite
   - context-discovery
-  - contextscout
   - multi-turn

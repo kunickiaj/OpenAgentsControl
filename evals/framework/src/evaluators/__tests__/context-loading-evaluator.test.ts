@@ -21,6 +21,78 @@ describe('ContextLoadingEvaluator', () => {
     time: { created: Date.now(), updated: Date.now() },
   };
 
+  describe('explicit expectedContextFiles', () => {
+    // The scratch path contains "test", so prompt detection alone expects test standards.
+    const docsPrompt = 'Create evals/test_tmp/SETUP.md with a Quick start section.';
+    const explicitEvaluator = new ContextLoadingEvaluator({
+      expectedContextFiles: ['standards/documentation.md'],
+    });
+
+    it('passes when a listed file is loaded even if the prompt suggests another task type', async () => {
+      // Arrange
+      const timeline: TimelineEvent[] = [
+        createUserMessageEvent(docsPrompt, 500),
+        createReadToolEvent('/project/.opencode/context/core/standards/documentation.md', 1000),
+        createWriteToolEvent('/project/evals/test_tmp/SETUP.md', 2000),
+      ];
+
+      // Act
+      const result = await explicitEvaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(true);
+      expect(result.violations).toEqual([]);
+    });
+
+    it('reports wrong-context-file when only an unlisted file is loaded', async () => {
+      // Arrange
+      const timeline: TimelineEvent[] = [
+        createUserMessageEvent(docsPrompt, 500),
+        createReadToolEvent('/project/.opencode/context/core/standards/test-coverage.md', 1000),
+        createWriteToolEvent('/project/evals/test_tmp/SETUP.md', 2000),
+      ];
+
+      // Act
+      const result = await explicitEvaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(false);
+      expect(result.violations.map(violation => violation.type)).toContain('wrong-context-file');
+    });
+
+    it('reports wrong-context-file when the prompt matches no known task type', async () => {
+      // Arrange
+      const timeline: TimelineEvent[] = [
+        createUserMessageEvent('Tidy evals/scratch/SETUP.md.', 500),
+        createReadToolEvent('/project/.opencode/context/core/standards/code-quality.md', 1000),
+        createWriteToolEvent('/project/evals/scratch/SETUP.md', 2000),
+      ];
+
+      // Act
+      const result = await explicitEvaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(false);
+      expect(result.violations.map(violation => violation.type)).toContain('wrong-context-file');
+    });
+
+    it('keeps prompt detection when a test lists no files', async () => {
+      // Arrange
+      const timeline: TimelineEvent[] = [
+        createUserMessageEvent('Write vitest tests for the clamp function.', 500),
+        createReadToolEvent('/project/.opencode/context/core/standards/documentation.md', 1000),
+        createWriteToolEvent('/project/src/clamp.test.ts', 2000),
+      ];
+
+      // Act
+      const result = await evaluator.evaluate(timeline, mockSessionInfo);
+
+      // Assert
+      expect(result.passed).toBe(false);
+      expect(result.violations.map(violation => violation.type)).toContain('wrong-context-file');
+    });
+  });
+
   describe('context file detection', () => {
     it('should detect .opencode/agent/*.md as context files', async () => {
       const timeline: TimelineEvent[] = [
@@ -244,6 +316,14 @@ describe('ContextLoadingEvaluator', () => {
 });
 
 // Helper functions to create mock timeline events
+
+function createUserMessageEvent(text: string, timestamp: number): TimelineEvent {
+  return {
+    timestamp,
+    type: 'user_message',
+    data: { text },
+  };
+}
 
 function createReadToolEvent(filePath: string, timestamp: number): TimelineEvent {
   return {
